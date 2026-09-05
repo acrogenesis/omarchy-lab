@@ -2,6 +2,8 @@
 
 A disposable Omarchy VM with a native Quickshell workbench: deploy branches, save checkpoints, control resources and networking, and capture what happens in the guest.
 
+An [open draft PR in Omarchy (#10109)](https://github.com/omacom/omarchy/pull/10109) proposes including Lab by default. It has not been merged; this standalone plugin lets you try it now.
+
 **Early preview for Omarchy Quattro's Quickshell desktop.** This is not a plugin for the older Waybar desktop, and it does not replace or upgrade your host Omarchy installation. No custom Omarchy branch is required, but your host must already provide the Quickshell plugin API, `SearchableDropdown`, and `NumberField` components.
 
 ## Screenshots
