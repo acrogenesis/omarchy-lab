@@ -10,3 +10,9 @@ jobs:
       - run: pacman -Syu --noconfirm --needed git nodejs jq ripgrep qemu-img imagemagick openssh desktop-file-utils
       - uses: actions/checkout@v4
       - run: ./test/all
+      - uses: actions/checkout@v4
+        with:
+          repository: acrogenesis/omarchy
+          ref: feature/lab-vm
+          path: native-omarchy
+      - run: node test/lab-parity.mjs native-omarchy .

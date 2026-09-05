@@ -16,7 +16,11 @@ After extraction, the real external-plugin installer cloned and enabled `acrogen
 
 ## Outstanding coverage
 
-- Fresh full ISO install/rebuild and authenticated reset still need another end-to-end run for the extracted release.
+Fresh/nested install follow-up (2026-09-05): reproduced missing core/extra/multilib/omarchy databases inside an outer Lab VM. The installer recovered through a normal Omarchy update and installed all ten declared hypervisor/SSH dependencies. Reproduced the outer-network conflict with libvirt's default subnet; setup safely selected 192.168.124.0/24. A clean second run of the complete installer with 4 GiB RAM, 4 CPUs and a 40-GiB disk completed ISO installation, guest package/database bootstrap, display-agent setup, gold/overlay creation and reboot. Verified the generated SSH shortcut, passwordless sudo validation, active display-resize service and a visible nested desktop in virt-viewer. The viewer was launched separately with the graphical session environment because the test installer ran over SSH.
+
+The first diagnostic install was discarded and recreated; only the disposable nested VM was replaced. A Quickshell lockscreen abort was observed during shell-wide plugin reload in the outer guest. Lab setup no longer performs that unnecessary rescan; the outer shell was restored, and the final bar-enable step and viewer passed without another crash. This avoids the installer trigger, not a general fix for Quickshell reload bugs.
+
+- Fresh full ISO installation now passes the nested end-to-end run above. The separate gold-rebuild command and authenticated reset still need another end-to-end run for the extracted release.
 - Intermittent firmware/boot delays remain under investigation.
 - TPM state is shared across checkpoints; cloning a disk into a new TPM is not equivalent to restoring a checkpoint.
 - Test on smaller hosts and different GPUs before recommending this for unattended or security-sensitive workloads.

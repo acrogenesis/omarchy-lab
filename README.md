@@ -39,6 +39,8 @@ Select **Install Lab VM** on the Console page. The button shows **Opening instal
 
 Requirements: hardware virtualization enabled in firmware, `/dev/kvm`, an internet connection for initial setup, and sufficient disk space. The guest disk defaults to 80 GB **sparse virtual capacity**; the ISO is several GB and gold images/checkpoints require additional real space. Balanced defaults to up to 4 CPU cores / 8 GiB RAM. Smaller hosts cap the allocation downward.
 
+Fresh installations with missing package databases run the normal Omarchy update flow before dependencies are installed; this updates that machine and may require a reboot. Setup includes the SSH proxy dependency and also bootstraps the new guest's display-agent package. Nested installation is supported when KVM is exposed to the outer VM: an unused conflicting default NAT network is moved to an available subnet, without renumbering active networks or networks used by existing VMs.
+
 The bar icon normally appears while virt-viewer is open. Turn on **Keep in bar** to retain it after closing the viewer. You can always summon the controls with the command above. After VM installation, **Omarchy Lab** also appears in the app launcher.
 
 ### CLI
@@ -85,7 +87,7 @@ Recordings capture a composited host-screen rectangle, not a private guest frame
 
 This package reuses the `omarchy-lab` domain, disk names and state paths from the native Lab implementation. Installing it does not create a second independent lab. If you already have the native Lab plugin, use one control panel at a time. Uninstalling the plugin **does not delete your VM**. Remove the VM explicitly with `omarchy-labctl vm remove` before removing the plugin if that is what you intend.
 
-Live-tested: viewer controls, branch deploy/sync and failure handling, checkpoint restore after gold promotion, network transitions, resource changes, transfers, health/Stop races, and terminal lifetime. Regression tests cover destructive failure paths. **A fresh full installation/rebuild and authenticated reset have not yet been rerun end-to-end for this extracted release.** Intermittent firmware/boot delays observed during development remain under investigation. See [validation](docs/VALIDATION.md).
+Live-tested: fresh nested ISO installation through gold/overlay creation and reboot, SSH, guest display-agent setup, viewer controls, branch deploy/sync and failure handling, checkpoint restore after gold promotion, network transitions, resource changes, transfers, health/Stop races, and terminal lifetime. Regression tests cover destructive failure paths. **The separate gold-rebuild command and authenticated reset have not yet been rerun end-to-end for this extracted release.** Intermittent firmware/boot delays observed during development remain under investigation. See [validation](docs/VALIDATION.md).
 
 ## Update or remove
 
@@ -97,6 +99,8 @@ omarchy plugin remove acrogenesis.lab
 Removal preserves VM disks, checkpoints, settings, artifacts, hypervisor packages and firewall rules. If you created the optional command symlink, remove it separately after checking it points to this plugin.
 
 ## Development
+
+Shared Lab functionality is kept in sync with the native Omarchy implementation. See the [paired-repository workflow and required parity check](docs/lab-development.md). CI checks for shared-code drift against the native feature branch.
 
 ```bash
 git clone https://github.com/acrogenesis/omarchy-lab
