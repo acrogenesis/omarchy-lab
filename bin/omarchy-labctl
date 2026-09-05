@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# omarchy:summary=Control the standalone Omarchy Lab plugin and virtual machine
+# omarchy:args=<controls|doctor|vm|viewer|checkout|checkpoint|gold|network|resource|capture|transfer|action|health|scenario> [args]
+
+set -euo pipefail
+source "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")/omarchy-lab-runtime"
+
+command=${1:-help}
+if (($#)); then shift; fi
+case $command in
+  controls) omarchy-shell shell summon acrogenesis.lab '{}' ;;
+  launch)
+    source "$LAB_ROOT/bin/omarchy-lab-vm"
+    if have_domain; then
+      "$LAB_ROOT/bin/omarchy-lab-viewer" launch
+    else
+      launch_lifecycle_terminal "$LAB_ROOT/bin/omarchy-lab-vm" install
+    fi
+    ;;
+  proxy)
+    [[ ${1:-} =~ ^[0-9]+$ ]] || { echo 'Expected SSH port' >&2; exit 2; }
+    port=$1
+    source "$LAB_ROOT/bin/omarchy-lab-vm"
+    ip=$(guest_ip)
+    [[ -n $ip ]] || { echo 'Lab has no address' >&2; exit 1; }
+    exec nc -w 5 "$ip" "$port"
+    ;;
+  doctor)
+    [[ -n ${OMARCHY_PATH:-} && -f $OMARCHY_PATH/shell/Ui/SearchableDropdown.qml && -f $OMARCHY_PATH/shell/Ui/NumberField.qml ]] || {
+      echo 'Requires Omarchy Quattro with the Quickshell plugin API (not the older Waybar desktop).' >&2
+      exit 1
+    }
+    [[ -e /dev/kvm ]] || { echo 'KVM is unavailable; enable virtualization in firmware.' >&2; exit 1; }
+    echo "Omarchy runtime: $OMARCHY_PATH"
+    echo "Lab package: $LAB_ROOT"
+    echo 'Quickshell UI and KVM are available. VM installation installs the hypervisor dependencies.'
+    ;;
+  vm|viewer|checkout|checkpoint|gold|network|resource|capture|transfer|action|health|scenario)
+    "$LAB_ROOT/bin/omarchy-lab-$command" "$@"
+    ;;
+  help|--help|-h)
+    cat <<'EOF'
+Omarchy Lab (standalone)
+
+  omarchy-labctl doctor                 check host compatibility
+  omarchy-labctl controls               open the workbench
+  omarchy-labctl vm install             install the disposable guest
+  omarchy-labctl launch                 open the guest, or start installation
+  omarchy-labctl viewer set keep-in-bar true
+  omarchy-labctl <command> --help
+
+Commands: vm, viewer, checkout, checkpoint, gold, network, resource,
+          capture, transfer, action, health, scenario
+EOF
+    ;;
+  *) echo "Unknown Lab command: $command" >&2; exit 2 ;;
+esac

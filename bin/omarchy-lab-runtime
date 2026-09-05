@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# omarchy:summary=Locate the standalone Lab package without changing Omarchy's runtime
+# omarchy:hidden=true
+
+set -euo pipefail
+
+# Resolve this package, even when called through a user-created command symlink.
+# OMARCHY_PATH remains the host checkout/package, never this plugin directory.
+LAB_ROOT=$(cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")/.." && pwd)

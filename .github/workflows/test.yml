@@ -1,0 +1,12 @@
+name: Tests
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    steps:
+      - run: pacman -Syu --noconfirm --needed git nodejs jq ripgrep qemu-img imagemagick openssh desktop-file-utils
+      - uses: actions/checkout@v4
+      - run: ./test/all

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "acrogenesis.lab",
+  "name": "Omarchy Lab",
+  "version": "0.1.0",
+  "author": "acrogenesis",
+  "description": "Develop, test, capture, isolate, and automate the Omarchy Lab virtual machine",
+  "keepLoaded": true,
+  "kinds": [
+    "panel",
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "panel": "Panel.qml",
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Lab",
+    "description": "Lab VM console and development workbench",
+    "category": "System",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/acrogenesis/omarchy-lab"
+}

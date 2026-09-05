@@ -1,0 +1,5 @@
+*.log
+*.qcow2
+*.iso
+*.mp4
+*.tar.gz
