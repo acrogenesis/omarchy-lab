@@ -20,6 +20,7 @@ Item {
   property var manifest: null
   property bool opened: false
   property bool busy: false
+  property string openingTerminalAction: ""
   readonly property bool installerOpening: busy && actionLabel === "Opening installer"
   readonly property bool inlineInstallError: currentPage === 0 && !status.installed && actionLabel === "Opening installer" && errorText !== ""
   property bool resetArmed: armedAction === "reset"
@@ -115,9 +116,11 @@ Item {
     errorText = ""
     actionOutput = ""
     stderrText = ""
-    actionLabel = label
-    closeAfterAction = closeAfter === true
-    actionProc.command = [labCommand(command)].concat(args)
+    var terminalArgs = Model.terminalCommand(command, args)
+    openingTerminalAction = terminalArgs ? terminalArgs[1] : ""
+    actionLabel = terminalArgs ? "Opening " + label + " terminal" : label
+    closeAfterAction = closeAfter === true || terminalArgs !== null
+    actionProc.command = terminalArgs ? [labCommand("omarchy-lab-terminal-launch")].concat(terminalArgs) : [labCommand(command)].concat(args)
     actionProc.running = true
   }
 
@@ -127,6 +130,10 @@ Item {
 
   function openInstaller() {
     runCommand("omarchy-lab-install-launch", [], "Opening installer", true)
+  }
+
+  function terminalButtonText(action, text) {
+    return busy && openingTerminalAction === action ? "Opening terminal…" : text
   }
 
   function actionFailedToStart() {
@@ -498,7 +505,7 @@ Item {
                     ActionButton { text: "Screenshot"; onClicked: root.runViewer(["screenshot"], "Screenshot") }
                     ActionButton { text: "Reboot"; onClicked: root.runViewer(["reboot"], "Reboot") }
                     ActionButton { text: "Stop"; danger: true; onClicked: root.runViewer(["stop"], "Stop", true) }
-                    ActionButton { text: root.armedAction === "reset" ? "Confirm reset" : "Reset"; danger: true; onClicked: root.armOrRun("reset", root.viewerCommand, ["reset"], "reset") }
+                    ActionButton { text: root.terminalButtonText("reset", root.armedAction === "reset" ? "Confirm reset" : "Reset"); danger: true; onClicked: root.armOrRun("reset", root.viewerCommand, ["reset"], "reset") }
                   }
                 }
               }
@@ -680,8 +687,8 @@ Item {
                   subtitle: root.goldSummary
                   RowLayout {
                     Layout.fillWidth: true
-                    ActionButton { text: root.armedAction === "promote" ? "Confirm promote" : "Promote current"; danger: true; onClicked: root.armOrRun("promote", "omarchy-lab-gold", ["promote", "--yes"], "promote") }
-                    ActionButton { text: root.armedAction === "rebuild" ? "Confirm rebuild" : "Rebuild from ISO"; danger: true; onClicked: root.armOrRun("rebuild", "omarchy-lab-gold", ["rebuild", "--yes"], "rebuild") }
+                    ActionButton { text: root.terminalButtonText("promote", root.armedAction === "promote" ? "Confirm promote" : "Promote current"); danger: true; onClicked: root.armOrRun("promote", "omarchy-lab-gold", ["promote", "--yes"], "promote") }
+                    ActionButton { text: root.terminalButtonText("rebuild", root.armedAction === "rebuild" ? "Confirm rebuild" : "Rebuild from ISO"); danger: true; onClicked: root.armOrRun("rebuild", "omarchy-lab-gold", ["rebuild", "--yes"], "rebuild") }
                   }
                 }
               }

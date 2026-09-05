@@ -79,6 +79,8 @@ This is a development lab, not a hardened malware-analysis sandbox. The guest in
 
 Reset discards the active overlay. Restore replaces it with a saved checkpoint. Promote changes the clean baseline; rebuild reinstalls the guest. Checkpoints are standalone disk images, but virtual TPM state is shared and is **not** rolled back. Destructive controls require confirmation and privileged lifecycle operations authenticate in a visible terminal before deleting data. Back up anything valuable separately.
 
+Reset, gold operations, checkpoint creation/restore, resource/network changes, and scenarios (which can invoke privileged steps) hand off to a terminal so authentication and progress are unobscured. The workbench closes only after the terminal starts; failed launches leave it open for retry. This handoff is not a success notification for the operation itself—follow its progress and any errors in the terminal.
+
 Recordings capture a composited host-screen rectangle, not a private guest framebuffer. The panel closes and the viewer is raised before recording; keep other windows out of the way. Diagnostic bundles and captures can contain sensitive guest data—review before sharing.
 
 This package reuses the `omarchy-lab` domain, disk names and state paths from the native Lab implementation. Installing it does not create a second independent lab. If you already have the native Lab plugin, use one control panel at a time. Uninstalling the plugin **does not delete your VM**. Remove the VM explicitly with `omarchy-labctl vm remove` before removing the plugin if that is what you intend.
