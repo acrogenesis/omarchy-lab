@@ -4,6 +4,26 @@ A disposable Omarchy VM with a native Quickshell workbench: deploy branches, sav
 
 **Early preview for Omarchy Quattro's Quickshell desktop.** This is not a plugin for the older Waybar desktop, and it does not replace or upgrade your host Omarchy installation. No custom Omarchy branch is required, but your host must already provide the Quickshell plugin API, `SearchableDropdown`, and `NumberField` components.
 
+## Screenshots
+
+Console — aspect ratios, zoom, viewer preferences, and VM controls.
+
+![Omarchy Lab Console with aspect ratio presets, zoom, and viewer controls](docs/screenshots/console.png)
+
+<details>
+<summary>Develop — branch deployment, health, and checkpoints</summary>
+
+![Omarchy Lab Develop page with local branch selection, guest health, and named checkpoints](docs/screenshots/develop.png)
+
+</details>
+
+<details>
+<summary>Environment — networking, hardware profiles, and gold images</summary>
+
+![Omarchy Lab Environment page with network modes, CPU and RAM profiles, and gold image controls](docs/screenshots/environment.png)
+
+</details>
+
 ## Install
 
 From a terminal in your Omarchy desktop:
