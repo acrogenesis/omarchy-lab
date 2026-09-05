@@ -12,7 +12,7 @@ The standalone-path suite keeps `OMARCHY_PATH` pointed at a separate host fixtur
 
 The native implementation was exercised on an actual Omarchy Quickshell desktop and an independent disposable VM clone: branch deploy/sync, failed rsync, marker-based checkpoint restore after gold promotion, both offline network-source transitions, resource power cycles, clipboard/file round trips, screenshots/recording, viewer ratios/settings, and Stop with an in-flight health poll. The original development VM was not used for destructive reset/rebuild tests.
 
-After extraction, validate plugin discovery/loading, all five pages, bundled command resolution and read-only guest health through the external plugin path. Do not infer fresh installation coverage from an existing guest's health.
+After extraction, the real external-plugin installer cloned and enabled `acrogenesis.lab`. Console, Develop, Environment, Capture and Automate were visually inspected in the running Quickshell desktop. Bundled health returned a healthy existing guest with its original boot ID; Reload Hyprland succeeded through the external panel. Package relocation, including a path with spaces and a separate host runtime, passes automated tests. Manifest validation and QML lint passed. The temporary external installation was removed after testing; the native Lab and guest were preserved. This does not establish fresh installation coverage.
 
 ## Outstanding coverage
 
