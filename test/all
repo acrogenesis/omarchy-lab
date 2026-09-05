@@ -4,6 +4,6 @@ root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 for file in "$root"/bin/* "$root"/test/shell.d/*-test.sh; do
   bash -n "$file"
 done
-for suite in standalone lab-review lab-workbench lab-viewer lab-panel; do
+for suite in standalone lab-install-launch lab-review lab-workbench lab-viewer lab-panel; do
   bash "$root/test/shell.d/$suite-test.sh"
 done

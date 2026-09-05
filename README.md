@@ -35,7 +35,7 @@ omarchy plugin add https://github.com/acrogenesis/omarchy-lab --enable
 omarchy-shell shell summon acrogenesis.lab '{}'
 ```
 
-Select **Install Lab VM** on the Console page. Setup opens a terminal for resource choices and authentication. It installs the virtualization dependencies, downloads the Omarchy ISO, performs an unattended guest installation, then saves a clean gold disk. This is a substantial download and can take a while.
+Select **Install Lab VM** on the Console page. The button shows **Opening installer…** while launching, then the workbench closes once the setup terminal is ready for resource choices and authentication. If launching fails, the workbench stays open with an error beside the button. Setup installs the virtualization dependencies, downloads the Omarchy ISO, performs an unattended guest installation, then saves a clean gold disk. This is a substantial download and can take a while.
 
 Requirements: hardware virtualization enabled in firmware, `/dev/kvm`, an internet connection for initial setup, and sufficient disk space. The guest disk defaults to 80 GB **sparse virtual capacity**; the ISO is several GB and gold images/checkpoints require additional real space. Balanced defaults to up to 4 CPU cores / 8 GiB RAM. Smaller hosts cap the allocation downward.
 

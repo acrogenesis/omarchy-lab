@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# omarchy:summary=Open the Lab installer terminal and acknowledge its startup
+# omarchy:hidden=true
+
+set -euo pipefail
+source "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")/omarchy-lab-vm"
+
+launch_installer() (
+  local launch_dir launcher attempt
+  launch_dir=$(mktemp -d "${XDG_RUNTIME_DIR:?}/omarchy-lab-install.XXXXXX")
+  trap 'rm -f -- "$launch_dir/ready" "$launch_dir/error"; rmdir -- "$launch_dir"' EXIT
+
+  # A successful terminal launcher exit alone does not prove a window opened.
+  # Acknowledge from inside the terminal, before entering the installer prompts.
+  # Removing the private directory on timeout also prevents a late installation.
+  launch_lifecycle_terminal /bin/bash -c \
+    '[[ -t 0 && -t 1 ]] && touch -- "$1/ready" && exec "$2" install' \
+    _ "$launch_dir" "$LAB_ROOT/bin/omarchy-lab-vm" \
+    >"$launch_dir/error" 2>&1 </dev/null &
+  launcher=$!
+
+  for ((attempt = 0; attempt < 100; attempt++)); do
+    if [[ -f $launch_dir/ready ]]; then
+      echo "Installer opened in a terminal."
+      return 0
+    fi
+    if ! kill -0 "$launcher" 2>/dev/null; then
+      if ! wait "$launcher"; then
+        cat "$launch_dir/error" >&2
+        echo "Could not open the installer terminal. Try again or run omarchy-labctl vm install in a terminal." >&2
+        return 1
+      fi
+    fi
+    sleep 0.1
+  done
+
+  cat "$launch_dir/error" >&2
+  echo "The installer terminal did not become ready within 10 seconds. Try again or run omarchy-labctl vm install in a terminal." >&2
+  return 1
+)
+
+if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
+  launch_installer
+fi

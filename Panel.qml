@@ -20,6 +20,8 @@ Item {
   property var manifest: null
   property bool opened: false
   property bool busy: false
+  readonly property bool installerOpening: busy && actionLabel === "Opening installer"
+  readonly property bool inlineInstallError: currentPage === 0 && !status.installed && actionLabel === "Opening installer" && errorText !== ""
   property bool resetArmed: armedAction === "reset"
   property string armedAction: ""
   property string errorText: ""
@@ -121,6 +123,18 @@ Item {
 
   function runViewer(args, label, closeAfter) {
     runCommand(viewerCommand, args, label, closeAfter)
+  }
+
+  function openInstaller() {
+    runCommand("omarchy-lab-install-launch", [], "Opening installer", true)
+  }
+
+  function actionFailedToStart() {
+    if (!actionProc.running && busy) {
+      busy = false
+      errorText = "Could not start the Lab command. Check that the plugin is installed correctly and try again."
+      closeAfterAction = false
+    }
   }
 
   function recordViewer() {
@@ -274,6 +288,9 @@ Item {
 
   Process {
     id: actionProc
+    onRunningChanged: {
+      if (!running) Qt.callLater(root.actionFailedToStart)
+    }
     stdout: StdioCollector { waitForEnd: true; onStreamFinished: root.actionOutput = String(text || "").trim() }
     stderr: StdioCollector { waitForEnd: true; onStreamFinished: root.stderrText = String(text || "").trim() }
     onExited: function(exitCode) {
@@ -399,7 +416,7 @@ Item {
             onChanged: function(value) { root.pageChanged(value) }
           }
 
-          Text { visible: root.errorText !== ""; text: root.errorText; textFormat: Text.PlainText; color: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.bodySmall; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+          Text { visible: root.errorText !== "" && !root.inlineInstallError; text: root.errorText; textFormat: Text.PlainText; color: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.bodySmall; wrapMode: Text.WordWrap; Layout.fillWidth: true }
 
           QQC.ScrollView {
             id: pageScroll
@@ -425,7 +442,20 @@ Item {
                   visible: !root.status.installed
                   title: "Install the guest"
                   subtitle: "Creates a disposable VM; a terminal opens for setup and authentication"
-                  ActionButton { text: "Install Lab VM"; onClicked: root.runCommand("omarchy-lab-vm", ["install"], "Install Lab") }
+                  ActionButton {
+                    text: root.installerOpening ? "Opening installer…" : "Install Lab VM"
+                    onClicked: root.openInstaller()
+                  }
+                  Text {
+                    Layout.fillWidth: true
+                    visible: root.inlineInstallError
+                    text: root.errorText
+                    textFormat: Text.PlainText
+                    wrapMode: Text.Wrap
+                    color: Color.urgent
+                    font.family: Style.font.family
+                    font.pixelSize: Style.font.caption
+                  }
                 }
 
                 WorkbenchSection {
