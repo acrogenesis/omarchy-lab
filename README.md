@@ -100,6 +100,14 @@ Removal preserves VM disks, checkpoints, settings, artifacts, hypervisor package
 
 ## Development
 
+### Agent skill
+
+The [omarchy-lab skill](default/agents/skills/omarchy-lab/SKILL.md) teaches agents to find the controller, deploy and verify guest changes, use checkpoints, and respect host/guest and destructive-action boundaries. Ask your agent's skill installer to install `default/agents/skills/omarchy-lab` from `acrogenesis/omarchy-lab`. Keep the complete folder, including `scripts/lab`; the helper supports both standalone and native Lab without changing your desktop's source tree.
+
+Plugin installation alone does not register a skill with your AI tools. Installed skill copies need refreshing separately when the skill changes. The repository's AGENTS.md links the same guidance for agents working in this checkout.
+
+### Contributing
+
 Shared Lab functionality is kept in sync with the native Omarchy implementation. See the [paired-repository workflow and required parity check](docs/lab-development.md). CI checks for shared-code drift against the native feature branch.
 
 ```bash

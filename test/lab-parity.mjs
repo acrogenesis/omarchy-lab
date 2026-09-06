@@ -43,6 +43,7 @@ export function check(native, standalone) {
     for (const name of fs.readdirSync(path.join(root, 'default/lab-vm'))) files.add('default/lab-vm/' + name)
   }
   for (const name of ['Panel.qml', 'BarWidget.qml', 'Model.js', 'manifest.json', 'test/lab-parity.mjs', 'test/lab-packaging.json']) files.add(name)
+  for (const name of ['SKILL.md', 'scripts/lab']) files.add('default/agents/skills/omarchy-lab/' + name)
   let failures = 0
   for (const file of files) {
     const nativeFile = file === 'manifest.json' || (/\.(qml|js)$/.test(file) && !file.startsWith('test/')) ? 'shell/plugins/panels/lab/' + file : file

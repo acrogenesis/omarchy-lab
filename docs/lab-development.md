@@ -20,4 +20,6 @@ For QML changes, verify the actual installed plugin is running current code, not
 
 ## Installer coverage
 
+The operational skill lives in default/agents/skills/omarchy-lab in both repositories and is included in the parity gate. Keep its controller helper and regression tests synchronized. Native user provisioning registers shipped skills; the standalone plugin documents separate agent-skill installation. When publishing a skill change, verify any installed local skill copy as well as the plugin checkout.
+
 First-install tests cover absent/custom repository databases, full-update failure and retry, required hypervisor/SSH packages, safe nested NAT subnet selection, and guest-side display-agent provisioning. Real nested installation must also exercise ISO boot, provisioning, gold/overlay creation, SSH, and viewer startup. Report any end-to-end gaps explicitly.
