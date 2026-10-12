@@ -11,6 +11,14 @@ const Model = requireFromRoot('Model.js')
 const manifest = requireFromRoot('manifest.json')
 const panel = fs.readFileSync(path.join(root, 'Panel.qml'), 'utf8')
 const widget = fs.readFileSync(path.join(root, 'BarWidget.qml'), 'utf8')
+const vm = require('vm')
+const commandText = 'printf "%s\\n" "hello world"; printf "%s" "literal $value"'
+const commandContext = vm.createContext({guestCommandField:{text:commandText},root:{runCommand(command,args){this.command=command;this.args=args}}})
+const workbenchClick = panel.match(/ActionButton[^\n]*guestCommandField.text[^\n]*onClicked: ([^\n]+) }/)[1]
+vm.runInContext(workbenchClick, commandContext)
+assertEqual(commandContext.root.command, 'omarchy-lab-vm', 'workbench uses the guest command-string interface')
+assertDeepEqual(Array.from(commandContext.root.args), ['session',commandText], 'workbench preserves its complete shell command as one session argument')
+
 
 assertDeepEqual(
   Model.parseStatus(''),

@@ -232,3 +232,14 @@ finally:
     assert owner.wait(timeout=5)==0
 print('ok - nested operations keep their owners lock until the owning operation exits')
 PY
+
+(
+  source "$ROOT/bin/omarchy-lab-vm"
+  wait_ssh() { :; }
+  wait_hypr() { :; }
+  session_env=""
+  lab_ssh() { bash -c "$1"; }
+  result=$(session_lab 'printf "%s\n" "hello world"; printf "%s" "second command"')
+  [[ $result == $'hello world\nsecond command' ]] || fail "session command string lost arguments or shell syntax"
+)
+pass "the workbench session interface executes arguments and intentional shell syntax"

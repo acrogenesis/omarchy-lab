@@ -765,7 +765,7 @@ Item {
                   RowLayout {
                     Layout.fillWidth: true
                     TextField { id: guestCommandField; Layout.fillWidth: true; placeholderText: "graphical-session command"; foreground: root.foreground; accent: Color.accent }
-                    ActionButton { Layout.fillWidth: false; text: "Run"; enabled: !root.busy && guestCommandField.text !== ""; onClicked: root.runCommand("omarchy-lab-action", ["run", guestCommandField.text], "Guest command") }
+                    ActionButton { Layout.fillWidth: false; text: "Run"; enabled: !root.busy && guestCommandField.text !== ""; onClicked: root.runCommand("omarchy-lab-vm", ["session", guestCommandField.text], "Guest command") }
                   }
                 }
 
