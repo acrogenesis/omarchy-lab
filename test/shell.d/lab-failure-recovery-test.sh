@@ -179,3 +179,56 @@ finally:
     holder.wait(timeout=5)
 print('ok - an independent start process waits until the disk-operation lock is released')
 PY
+
+python3 - "$ROOT" "$task_tmp" <<'PY'
+import os
+from pathlib import Path
+import re
+import signal
+import subprocess
+import sys
+import time
+root, temporary = map(Path, sys.argv[1:])
+helper = root / 'bin/omarchy-lab-operation-lock'
+p = temporary / 'lock-children'
+p.mkdir()
+setup = re.search(r'  source omarchy-sudo-keepalive[^\n]*\n  trap [^\n]+', (root / 'bin/omarchy-lab-vm').read_text()).group(0)
+fixture = p / 'bin'
+fixture.mkdir()
+(fixture / 'omarchy-sudo-keepalive').write_text('''(sleep 30 >/dev/null 2>&1 & printf '%s' "$!" >"$CHILD_FILE"; wait) >/dev/null 2>&1 &
+SUDO_KEEPALIVE_PID=$!
+trap "kill $SUDO_KEEPALIVE_PID 2>/dev/null" EXIT
+''')
+for kind in ['normal', 'failure', 'keepalive']:
+    child_file = p / (kind + '-child')
+    state = p / (kind + '-state')
+    env = dict(os.environ, HELPER=str(helper), OMARCHY_LAB_DATA_DIR=str(state), CHILD_FILE=str(child_file), PATH=str(fixture)+':'+os.environ['PATH'])
+    if kind == 'keepalive':
+        body = 'setup_keepalive(){\n'+setup+'\n}; setup_keepalive; until [[ -s $CHILD_FILE ]]; do sleep .01; done; exit 17'
+    else:
+        body = 'sleep 30 >/dev/null 2>&1 & printf "%s" "$!" >"$CHILD_FILE"; exit '+('17' if kind == 'failure' else '0')
+    parent = subprocess.run(['bash','-c','source "$HELPER"; lab_operation_lock; '+body],env=env,capture_output=True,text=True,timeout=5)
+    try:
+        assert parent.returncode == (0 if kind == 'normal' else 17), (kind,parent.stderr,parent.returncode)
+        assert child_file.exists()
+        child = int(child_file.read_text())
+        os.kill(child,0)
+        assert subprocess.run(['flock','-n',str(state/'operation.lock'),'true']).returncode == 0, kind+' background child retained the completed operation lock'
+    finally:
+        if child_file.exists():
+            try:os.kill(int(child_file.read_text()),signal.SIGTERM)
+            except ProcessLookupError:pass
+print('ok - successful, failed and keepalive operations explicitly unlock despite surviving children and preserve failure status')
+entered, release = p/'nested-entered', p/'nested-release'
+env = dict(os.environ, HELPER=str(helper), OMARCHY_LAB_DATA_DIR=str(p/'nested-state'), ENTERED=str(entered), RELEASE=str(release))
+owner = subprocess.Popen(['bash','-c','source "$HELPER"; lab_operation_lock; lab_with_operation_lock true; touch "$ENTERED"; until [[ -f $RELEASE ]]; do sleep .03; done'],env=env,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
+try:
+    deadline = time.monotonic()+5
+    while not entered.exists() and time.monotonic()<deadline:time.sleep(.02)
+    assert entered.exists()
+    assert subprocess.run(['flock','-n',str(p/'nested-state/operation.lock'),'true']).returncode == 1, 'a nested operation unlocked its active owner'
+finally:
+    release.touch()
+    assert owner.wait(timeout=5)==0
+print('ok - nested operations keep their owners lock until the owning operation exits')
+PY

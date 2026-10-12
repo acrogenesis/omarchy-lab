@@ -801,6 +801,7 @@ ensure_hypervisor() {
 
   ensure_install_packages || return 1
   source omarchy-sudo-keepalive || return 1
+  trap 'kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true; lab_operation_unlock' EXIT
   sudo usermod -aG libvirt,kvm "$USER" || return 1
   sudo systemctl enable --now libvirtd.service || return 1
   ensure_default_network || return 1
