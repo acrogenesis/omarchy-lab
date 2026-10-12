@@ -1567,6 +1567,10 @@ ssh_lab() {
 }
 
 session_lab() {
+  if ! have_domain; then
+    echo "Omarchy Lab is not installed or its domain is unavailable. Run omarchy-labctl vm install first." >&2
+    return 1
+  fi
   wait_ssh
   wait_hypr
   lab_ssh "bash -lc $(printf '%q' "$session_env $*" )"

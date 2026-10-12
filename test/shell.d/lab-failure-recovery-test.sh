@@ -235,6 +235,7 @@ PY
 
 (
   source "$ROOT/bin/omarchy-lab-vm"
+  have_domain() { return 0; }
   wait_ssh() { :; }
   wait_hypr() { :; }
   session_env=""
@@ -243,3 +244,15 @@ PY
   [[ $result == $'hello world\nsecond command' ]] || fail "session command string lost arguments or shell syntax"
 )
 pass "the workbench session interface executes arguments and intentional shell syntax"
+
+(
+  source "$ROOT/bin/omarchy-lab-vm"
+  have_domain() { return 1; }
+  wait_ssh() { touch "$task_tmp/unexpected-ssh-wait"; }
+  wait_hypr() { touch "$task_tmp/unexpected-hypr-wait"; }
+  lab_ssh() { touch "$task_tmp/unexpected-guest-command"; }
+  if session_lab 'printf hello' >"$task_tmp/missing-output" 2>"$task_tmp/missing-error"; then fail "an uninstalled Lab accepts a workbench session"; fi
+  [[ ! -e $task_tmp/unexpected-ssh-wait && ! -e $task_tmp/unexpected-hypr-wait && ! -e $task_tmp/unexpected-guest-command ]] || fail "an uninstalled Lab entered a wait or ran the command"
+  rg -q 'install first' "$task_tmp/missing-error" || fail "missing Lab session did not explain how to install"
+)
+pass "an uninstalled Lab rejects command strings before any startup or wait"
