@@ -217,8 +217,8 @@ start_viewer_service() {
     --working-directory="$HOME" \
     --setenv=OMARCHY_PATH="$OMARCHY_PATH" \
     --setenv=OMARCHY_LAB_VIEWER_SKIP_RESTORE=1 \
-    --property=StandardOutput=null \
-    --property=StandardError=null \
+    --property=StandardOutput=journal \
+    --property=StandardError=journal \
     -- "$VIEWER_BIN" "$command"
 }
 
@@ -277,16 +277,20 @@ enqueue_launch_service() {
   systemd-run --user --quiet --collect --unit="$VIEWER_UNIT" \
     --working-directory="$HOME" \
     --setenv=OMARCHY_PATH="$OMARCHY_PATH" \
-    --property=StandardOutput=null \
-    --property=StandardError=null \
+    --property=StandardOutput=journal \
+    --property=StandardError=journal \
     -- "$VIEWER_BIN" launch-service
 }
 
 launch_viewer() {
-  if ! enqueue_launch_service 2>/dev/null; then
+  if enqueue_launch_service; then
+    # Enqueuing is only a handoff. Wait until the graphical console actually
+    # appears, and keep controls open if the bounded startup fails.
+    wait_for_viewer || return 1
+  else
     ensure_lab_running || return 1
     wake_lab_display
-    focus_viewer || viewer_service_active || fail "the Lab viewer could not be launched"
+    focus_viewer || { fail "the Lab viewer could not be launched"; return 1; }
   fi
 }
 

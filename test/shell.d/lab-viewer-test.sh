@@ -36,10 +36,11 @@ pass "viewer preferences have safe defaults"
 (
   source "$viewer"
   enqueue_launch_service() { printf '%s\n' enqueue >>"$tmpdir/launch-calls"; }
+  wait_for_viewer() { :; }
   launch_viewer
 )
 rg -qx 'enqueue' "$tmpdir/launch-calls" || fail "launch immediately enqueues its service"
-pass "launcher detaches the graphical console from the app scope"
+pass "launcher detaches the console and waits for startup acknowledgment"
 
 (
   source "$viewer"

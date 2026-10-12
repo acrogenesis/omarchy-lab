@@ -292,7 +292,7 @@ sync_checkout() {
     path=$(jq -er '.path | select(type == "string" and length > 0)' "$DEPLOYMENT_FILE") || lab_fail "saved deployment has no host path"
     deployment=$(deploy_checkout "$path" --destination "$destination" --no-reboot --json) || return 1
   fi
-  session_lab omarchy-restart-shell >/dev/null 2>&1 || true
+  session_lab omarchy-restart-shell || { lab_fail "checkout copied, but the guest shell restart failed"; return 1; }
   if $json; then
     jq '. + {mode:"sync"}' <<<"$deployment"
   else
