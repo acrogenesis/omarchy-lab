@@ -50,6 +50,8 @@ mkdir -p "$HOME" "$OMARCHY_LAB_SCENARIO_DIR"
 (
   # shellcheck disable=SC1090
   source "$ROOT/bin/omarchy-lab-resource"
+  # The daemon-state fixture lives in this shell; concurrency is covered separately.
+  lab_with_operation_lock() { "$@"; }
   RESOURCE_FILE="$test_tmp/resource-profile.json"
   resource_calls="$test_tmp/resource-calls"
   resource_status_json() {
@@ -80,6 +82,8 @@ pass "resource profiles stay workload-based and expand the VM ceiling safely"
 
 (
   source "$ROOT/bin/omarchy-lab-resource"
+  # The daemon-state fixture lives in this shell; concurrency is covered separately.
+  lab_with_operation_lock() { "$@"; }
   RESOURCE_FILE="$test_tmp/resource-resizing.json"
   mock_max_cpus=16 mock_cpus=8 mock_max_kib=67108864 mock_kib=16777216
   mock_running=true mock_stops=0 mock_starts=0

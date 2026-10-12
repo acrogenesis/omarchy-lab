@@ -151,3 +151,5 @@ Changing between NAT and isolated networking requires a running guest so Lab can
 To delete the VM and its disks, run `omarchy-labctl vm remove`. The hypervisor packages, UFW rules, and downloaded ISO stay, so a later install is faster. Removing the shell plugin is separate and does not delete the VM.
 
 See the upstream Omarchy manual for the unattended `cidata` installer mechanism.
+
+Checkpoint records include the network source and link state so disk restores retain their matching guest addressing. Legacy checkpoints without network metadata retain the current network with a warning; select their original network before restoring them. Rebuilding gold preserves the SSH key used by saved checkpoints. Disk changes and guest starts share an operation lock.

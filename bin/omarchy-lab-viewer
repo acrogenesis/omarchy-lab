@@ -6,6 +6,8 @@
 
 set -euo pipefail
 
+source "$(dirname "${BASH_SOURCE[0]}")/omarchy-lab-operation-lock"
+
 source "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")/omarchy-lab-runtime"
 
 CONNECT=${OMARCHY_LAB_CONNECT:-qemu:///system}
@@ -296,7 +298,7 @@ ensure_lab_running() {
     return 1
   fi
   if [[ $state != "running" ]]; then
-    run_virsh start "$NAME" >/dev/null || return 1
+    lab_with_operation_lock run_virsh start "$NAME" >/dev/null || return 1
   fi
 }
 

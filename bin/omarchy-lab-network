@@ -85,7 +85,7 @@ prepare_guest_network() {
   lab_ssh "uuid=\$(nmcli -t -f UUID,TYPE connection show --active | sed -n 's/:802-3-ethernet\$//p' | head -1); [[ -n \$uuid ]] || exit 1; $command"
 }
 
-switch_source() {
+switch_source() (
   local network=$1 mac was_running=false domain_xml interface_xml replacement_xml
   mac=$(lab_mac)
   [[ -n $mac ]] || lab_fail "Lab has no libvirt network interface"
@@ -94,6 +94,24 @@ switch_source() {
     lab_fail "start the Lab on its current network before changing network sources"
     return 1
   fi
+  local previous_live previous_config
+  previous_live=$(run_virsh domif-getlink "$NAME" "$mac" | awk 'NR == 1 {print $NF}') || return 1
+  previous_config=$(run_virsh domif-getlink "$NAME" "$mac" --config | awk 'NR == 1 {print $NF}') || return 1
+  [[ $previous_live == "up" || $previous_live == "down" ]] || return 1
+  [[ $previous_config == "up" || $previous_config == "down" ]] || return 1
+  restore_links_on_failure() {
+    local status=$? failed=0
+    trap - EXIT
+    if (( status != 0 )); then
+      run_virsh domif-setlink "$NAME" "$mac" "$previous_config" --config >/dev/null || failed=1
+      if domain_running; then
+        run_virsh domif-setlink "$NAME" "$mac" "$previous_live" >/dev/null || failed=1
+      fi
+      if (( failed )); then lab_fail "could not restore the original network link state"; fi
+    fi
+    exit "$status"
+  }
+  trap restore_links_on_failure EXIT
   # Offline retains the source profile. Reconnect that source before SSH.
   run_virsh domif-setlink "$NAME" "$mac" up --config >/dev/null || return 1
   run_virsh domif-setlink "$NAME" "$mac" up >/dev/null || return 1
@@ -115,15 +133,16 @@ switch_source() {
   [[ -n $interface_xml ]] || lab_fail "Lab has no configurable network interface"
   replacement_xml=$(sed "s/<source network='[^']*'\/>/<source network='$network'\/>/" <<<"$interface_xml")
   [[ $replacement_xml != "$interface_xml" ]] || lab_fail "could not update the Lab network source"
-  run_virsh update-device "$NAME" /dev/stdin --config <<<"$replacement_xml" >/dev/null
+  run_virsh update-device "$NAME" /dev/stdin --config <<<"$replacement_xml" >/dev/null || return 1
   if $was_running; then
     rm -f "$KNOWN_HOSTS"
-    run_virsh start "$NAME" >/dev/null
-    wait_ssh >&2
+    lab_with_operation_lock run_virsh start "$NAME" >/dev/null || return 1
+    wait_ssh >&2 || return 1
   fi
-}
+)
 
-set_network_mode() {
+set_network_mode() (
+  lab_operation_lock || return 1
   local mode=$1 json=false mac source
   shift || true
   while (($#)); do
@@ -158,7 +177,7 @@ set_network_mode() {
   esac
 
   if $json; then network_status_json; else printf 'Lab network mode: %s\n' "$mode"; fi
-}
+)
 
 show_usage() {
   cat <<'EOF'

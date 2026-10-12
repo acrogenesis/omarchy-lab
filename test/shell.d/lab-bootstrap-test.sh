@@ -151,7 +151,7 @@ pass 'only an unused conflicting default network is renumbered, with a backup an
 run_node_test <<'JS'
 const fs = require('fs')
 const source = fs.readFileSync(path.join(root, 'bin/omarchy-lab-vm'), 'utf8')
-const reset = source.match(/reset_lab\(\) \{[^]*?\n}/)[0]
+const reset = source.match(/reset_lab\(\) [({][^]*?\n[})]/)[0]
 assert(reset.indexOf('ensure_guest_display_resize || return 1') > reset.indexOf('wait_ssh'), 'reset repairs legacy gold integration after SSH comes up')
 const aspect = source.match(/resize_viewer_aspect\(\) \{[^]*?\n}/)[0]
 assert(aspect.indexOf('ensure_guest_display_resize || return 1') < aspect.indexOf('geometry=$(wait_viewer_geometry)'), 'aspect repairs guest integration before negotiating viewer geometry')

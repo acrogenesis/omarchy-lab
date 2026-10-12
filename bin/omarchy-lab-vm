@@ -12,6 +12,8 @@
 
 set -euo pipefail
 
+source "$(dirname "${BASH_SOURCE[0]}")/omarchy-lab-operation-lock"
+
 source "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")/omarchy-lab-runtime"
 
 CONNECT=${OMARCHY_LAB_CONNECT:-qemu:///system}
@@ -292,7 +294,7 @@ wait_ssh() {
   until lab_ssh_quiet true; do
     if ! domain_running; then
       echo "Guest is off; starting $NAME..."
-      run_virsh start "$NAME" >/dev/null 2>&1 || true
+      lab_with_operation_lock run_virsh start "$NAME" >/dev/null 2>&1 || true
     fi
     ((n++ < 900)) || {
       echo "SSH did not come up" >&2
@@ -1056,7 +1058,8 @@ check_space() {
   fi
 }
 
-install_lab() {
+install_lab() (
+  lab_operation_lock || return 1
   if ! is_tty; then
     launch_lifecycle_terminal "$LAB_ROOT/bin/omarchy-lab-vm" install "$@"
     return
@@ -1145,7 +1148,7 @@ install_lab() {
   write_state "$INSTALL_USER" "$INSTALL_DISK"
   enable_lab_controls
 
-  run_virsh start "$NAME" >/dev/null
+  lab_with_operation_lock run_virsh start "$NAME" >/dev/null
   ensure_viewer
   wait_ssh
   wait_hypr || true
@@ -1157,10 +1160,12 @@ install_lab() {
   echo "  omarchy-labctl vm push ~/Work/omarchy"
   echo "  omarchy-labctl vm reset"
   trap - INT
-}
+)
 
-remove_lab() {
-  local pool yes=0
+remove_lab() (
+  lab_operation_lock || return 1
+  local pool yes=0 keep_key=0
+  if [[ ${2:-} == "--keep-key" ]]; then keep_key=1; fi
   if [[ ${1:-} == "--yes" || ${OMARCHY_LAB_FORCE:-0} == 1 ]]; then
     yes=1
   fi
@@ -1194,10 +1199,14 @@ remove_lab() {
   fi
   rm -f "$DESKTOP_FILE"
   rm -rf "$STATE_DIR"
-  remove_ssh_artifacts
+  if (( keep_key == 0 )); then
+    remove_ssh_artifacts
+  else
+    rm -f "$KNOWN_HOSTS"
+  fi
   update-desktop-database "$(dirname "$DESKTOP_FILE")" 2>/dev/null || true
   echo "Omarchy Lab removed."
-}
+)
 
 viewer_cmd() {
   "$LAB_ROOT/bin/omarchy-lab-viewer" run
@@ -1354,7 +1363,7 @@ resize_viewer_aspect() {
     return 1
   fi
   if ! domain_running; then
-    run_virsh start "$NAME" >/dev/null
+    lab_with_operation_lock run_virsh start "$NAME" >/dev/null
   fi
 
   ensure_viewer
@@ -1452,7 +1461,7 @@ launch_lab() {
     return 1
   fi
   if ! domain_running; then
-    run_virsh start "$NAME"
+    lab_with_operation_lock run_virsh start "$NAME"
   fi
   attach_viewer
 }
@@ -1513,7 +1522,8 @@ restore_gold_network() {
   run_virsh update-device "$NAME" /dev/stdin --config <<<"$replacement"
 }
 
-reset_lab() {
+reset_lab() (
+  lab_operation_lock || return 1
   local pool
   if ! is_tty; then
     launch_lifecycle_terminal "$LAB_ROOT/bin/omarchy-lab-vm" reset
@@ -1543,12 +1553,12 @@ reset_lab() {
     --backing-vol "$BASE_VOL" --backing-vol-format qcow2 >/dev/null
   sudo chown libvirt-qemu:libvirt-qemu "$IMAGES/$OVERLAY_VOL"
   rm -f "$KNOWN_HOSTS"
-  run_virsh start "$NAME"
+  lab_with_operation_lock run_virsh start "$NAME"
   wait_ssh
   wait_hypr || true
   ensure_guest_display_resize || return 1
   echo "reset $(guest_ip)"
-}
+)
 
 ssh_lab() {
   wait_ssh

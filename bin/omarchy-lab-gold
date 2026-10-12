@@ -33,7 +33,10 @@ gold_status_json() {
   [[ -f $STATE_DIR/gold.json ]] && metadata=$(<"$STATE_DIR/gold.json")
   if domain_running; then current_version=$(lab_ssh 'omarchy version 2>/dev/null | head -1' || true); fi
   iso=$(find "$IMAGES" -maxdepth 1 -type f -name 'omarchy-[0-9]*.iso' -printf '%f\n' 2>/dev/null | sort -V | tail -1)
-  checkpoints=$(find "$CHECKPOINT_DIR" -maxdepth 1 -type f -name '*.json' 2>/dev/null | wc -l)
+  checkpoints=0
+  if [[ -d $CHECKPOINT_DIR ]]; then
+    checkpoints=$(find "$CHECKPOINT_DIR" -maxdepth 1 -type f -name '*.json' | wc -l)
+  fi
   jq -cn \
     --argjson base "$base" \
     --argjson overlay "$overlay" \
@@ -65,7 +68,8 @@ show_gold_status() {
   fi
 }
 
-promote_gold() {
+promote_gold() (
+  lab_operation_lock || return 1
   local yes=0 json=false was_running=false pool base overlay next previous metadata version="" network
   if ! is_tty; then
     launch_lifecycle_terminal "$LAB_ROOT/bin/omarchy-lab-gold" promote "$@"
@@ -99,7 +103,7 @@ promote_gold() {
   echo "Flattening the current Lab disk into a new gold image ..." >&2
   run_as_root rm -f "$next"
   if ! run_as_root qemu-img convert -p -O qcow2 "$overlay" "$next" >&2; then
-    $was_running && run_virsh start "$NAME" >/dev/null 2>&1 || true
+    $was_running && lab_with_operation_lock run_virsh start "$NAME" >/dev/null 2>&1 || true
     return 1
   fi
   run_as_root rm -f "$previous"
@@ -114,14 +118,15 @@ promote_gold() {
   write_private_json "$STATE_DIR/gold.json" "$metadata"
   rm -f "$KNOWN_HOSTS"
   if $was_running; then
-    run_virsh start "$NAME" >/dev/null
+    lab_with_operation_lock run_virsh start "$NAME" >/dev/null
     wait_ssh >&2
     wait_hypr >&2 || true
   fi
   if $json; then gold_status_json | jq '. + {promoted:true}'; else printf 'Promoted the current Lab to gold. Previous gold: %s\n' "$previous"; fi
-}
+)
 
-rebuild_gold() {
+rebuild_gold() (
+  lab_operation_lock || return 1
   local yes=0 json=false user disk cores memory_kib memory_gib
   if ! is_tty; then
     launch_lifecycle_terminal "$LAB_ROOT/bin/omarchy-lab-gold" rebuild "$@"
@@ -150,10 +155,10 @@ rebuild_gold() {
   export OMARCHY_LAB_CORES=$cores
   export OMARCHY_LAB_RAM="${memory_gib}G"
   export OMARCHY_LAB_PASSWORD=${OMARCHY_LAB_PASSWORD:-$PASSWORD_DEFAULT}
-  remove_lab --yes >&2
+  remove_lab --yes --keep-key >&2
   install_lab --yes >&2
   if $json; then gold_status_json | jq '. + {rebuilt:true}'; else echo "Rebuilt the Lab from the newest ISO."; fi
-}
+)
 
 show_usage() {
   cat <<'EOF'

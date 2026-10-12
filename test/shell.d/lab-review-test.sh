@@ -140,6 +140,7 @@ pass "legacy checkpoints preserve bytes across repeated gold replacement and con
     [[ $1 == "vol-download" ]] || fail "unexpected checkpoint operation: $*"
     cp "$test_tmp/current.qcow2" "$3"
   }
+  checkpoint_network_json() { printf '%s\n' '{"sourceNetwork":"default","link":"up"}'; }
   create_checkpoint independent --json >/dev/null
   qemu-img info --output=json "$CHECKPOINT_DIR/independent.qcow2" | jq -e 'has("backing-filename") | not' >/dev/null
   qemu-io -c 'write -P 0x44 0 4096' "$test_tmp/base.qcow2" >/dev/null
@@ -227,6 +228,7 @@ for source_network in default omarchy-lab-isolated; do
     wait_ssh() { :; }
     run_virsh() {
       case $1 in
+      domif-getlink) printf 'link: %s\n' "$link" ;;
       domif-setlink) link=$4 ;;
       dumpxml) printf "<interface type='network'>\n<source network='%s'/>\n</interface>\n" "$source_network" ;;
       update-device)

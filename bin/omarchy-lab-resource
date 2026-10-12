@@ -188,7 +188,7 @@ set_resource_profile() {
   fi
   write_private_json "$RESOURCE_FILE" "$(jq -cn --arg profile "$profile" --argjson cpus "$requested_cpus" --argjson memoryGiB "$requested_gib" '{profile:$profile,cpus:$cpus,memoryGiB:$memoryGiB}')"
   if $running && ! $no_reboot; then
-    run_virsh start "$NAME" >/dev/null
+    lab_with_operation_lock run_virsh start "$NAME" >/dev/null
     wait_ssh >&2
     wait_hypr >&2 || true
   fi
