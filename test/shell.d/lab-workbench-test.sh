@@ -23,7 +23,7 @@ for (const name of ['checkpoint', 'gold']) {
 }
 
 const scenario = fs.readFileSync(path.join(root, 'bin/omarchy-lab-scenario'), 'utf8')
-assert(scenario.includes('all(.command[]; type == "string")'), 'scenario steps are argument arrays')
+assert(scenario.includes('all(.command[]; type == "string"'), 'scenario steps are argument arrays')
 assert(!scenario.includes('eval '), 'scenario runner never evaluates shell strings')
 
 const network = fs.readFileSync(path.join(root, 'bin/omarchy-lab-network'), 'utf8')

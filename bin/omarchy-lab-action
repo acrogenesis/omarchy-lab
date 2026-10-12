@@ -79,7 +79,9 @@ run_action() {
   run)
     require_running_lab
     (($# > 0)) || lab_fail "usage: omarchy-labctl action run COMMAND [ARG ...]"
-    session_lab "$@"
+    local command
+    printf -v command '%q ' "$@"
+    session_lab "$command"
     ;;
   *)
     lab_fail "unknown action: ${action:-none}"

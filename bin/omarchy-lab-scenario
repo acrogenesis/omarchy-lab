@@ -28,7 +28,7 @@ scenario_valid() {
     all(.steps[];
       type == "object" and
       (.command | type == "array" and length > 0) and
-      all(.command[]; type == "string") and
+      all(.command[]; type == "string" and (contains("\u0000") | not)) and
       (.command[0] | IN("action","capture","checkpoint","checkout","gold","health","network","resource","transfer","viewer","vm"))
     )
   ' "$1" >/dev/null
@@ -81,7 +81,7 @@ run_command_array() {
   local encoded=$1 command output status=0
   local -a args=()
   command=$(base64 -d <<<"$encoded" | jq -r '.[0]')
-  mapfile -t args < <(base64 -d <<<"$encoded" | jq -r '.[1:][]')
+  mapfile -d '' -t args < <(base64 -d <<<"$encoded" | jq -j '.[1:][] | ., "\u0000"')
   case $command in
   viewer | vm)
     output=$("$LAB_ROOT/bin/omarchy-lab-$command" "${args[@]}" 2>&1) || status=$?
