@@ -4,6 +4,7 @@ source "$(dirname "$0")/base-test.sh"
 test_tmp=$(mktemp -d)
 trap 'rm -rf "$test_tmp"' EXIT
 update_helper="${OMARCHY_PATH:-$ROOT}/bin/omarchy-update-dev"
+export OMARCHY_PATH="$ROOT"
 source "$ROOT/bin/omarchy-lab-checkout"
 repository="$test_tmp/source repo"
 destination="$test_tmp/guest checkout"
