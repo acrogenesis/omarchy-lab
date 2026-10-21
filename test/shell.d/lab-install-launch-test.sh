@@ -78,8 +78,10 @@ const names = ['openInstaller', 'openLab', 'runViewer', 'runCommand', 'actionFai
 const context = {
   Model, busy: false, actionProc: {running: false}, armedAction: '', confirmTimer: {stop() {}, restart() {}},
   errorText: '', actionOutput: '', stderrText: '', actionLabel: '', closeAfterAction: false,
+  t: (key) => JSON.parse(fs.readFileSync(path.join(root, 'default/lab-vm/en.json'), 'utf8'))[key],
   labCommand: name => '/plugin/bin/' + name
 }
+context.root = context
 vm.createContext(context)
 for (const name of names) {
   const match = panel.match(new RegExp('  function ' + name + '\\([^]*?\\n  }'))
@@ -99,7 +101,7 @@ context.actionFailedToStart()
 assert(!context.busy && !context.closeAfterAction && context.errorText, 'spawn failure unlocks retry without closing')
 context.openInstaller()
 assertEqual(context.errorText, '', 'retry clears stale error')
-assert(panel.includes('root.installerOpening ? "Opening installer…" : "Install Lab VM"'), 'button reflects launch state')
+assert(/root\.installerOpening \? (?:I18n|labStrings)\.t\("lab\.openingInstallerLabel"\) : (?:I18n|labStrings)\.t\("lab\.installLabVM"\)/.test(panel), 'button reflects launch state with translated labels')
 assert(panel.includes('visible: root.inlineInstallError'), 'launch error shown beside button')
 assert(panel.includes('visible: root.errorText !== "" && !root.inlineInstallError'), 'launch error is not duplicated in global banner')
 assert(panel.includes('else if (root.closeAfterAction) root.dismiss()'), 'only successful exit dismisses')
@@ -126,7 +128,7 @@ for (const viewerActive of [false, true]) {
   context.actionFailedToStart()
   assert(!context.busy && !context.closeAfterAction && context.errorText, 'Open Lab spawn failure stays open for retry')
 }
-assert(panel.includes('visible: root.status.installed\n                  text: root.busy && root.actionLabel === "Opening Lab" ? "Opening Lab…" : "Open Lab"'), 'installed guests have an Open Lab button with opening feedback')
+assert(panel.includes('visible: root.status.installed\n                  text: root.busy && root.actionLabel === "Opening Lab" ? labStrings.t("lab.openingLabLabel") : labStrings.t("lab.openLab")'), 'installed guests have an Open Lab button with opening feedback')
 assert(panel.includes('onClicked: root.openLab()'), 'Open Lab button is wired to the tested action')
 
 for (const [command, args] of [

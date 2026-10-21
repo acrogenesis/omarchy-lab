@@ -29,6 +29,10 @@ const {pathToFileURL} = require('url')
       fs.writeFileSync(path.join(native, 'shell/plugins/panels/lab', file), 'shared UI\n')
       fs.writeFileSync(path.join(standalone, file), 'shared UI\n')
     }
+    const packaging = JSON.parse(fs.readFileSync(path.join(root, 'test/lab-packaging.json')))
+    fs.writeFileSync(path.join(native, 'shell/plugins/panels/lab/LabTranslations.qml'), packaging.native.lab_translations)
+    fs.writeFileSync(path.join(standalone, 'LabTranslations.qml'), packaging.standalone.lab_translations)
+    for (const dir of [native, standalone]) fs.writeFileSync(path.join(dir, 'default/lab-vm/en.json'), '{"lab.probe":"Probe"}')
     console.log = () => {}
     console.error = () => {}
     const same = check(native, standalone)

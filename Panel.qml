@@ -5,11 +5,171 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "Model.js" as Model
 
 Item {
   id: root
+
+  LabTranslations { id: labStrings }
+  function t(key, fallback) { return labStrings.t(key, fallback) }
+  readonly property var displayStrings: ({
+    "Alt+Down": t("lab.altDown"),
+    "Alt+Home": t("lab.altHome"),
+    "Alt+Left": t("lab.altLeft"),
+    "Alt+Right": t("lab.altRight"),
+    "Alt+Up": t("lab.altUp"),
+    "Apply custom": t("lab.applyCustom"),
+    "Artifact capture": t("lab.artifactCapture"),
+    "Aspect ratio": t("lab.aspectRatio"),
+    "Audio": t("lab.audio"),
+    "Auto resize": t("lab.autoResize"),
+    "Automate": t("lab.automate"),
+    "Balanced": t("lab.balanced"),
+    "Branch deployment": t("lab.branchDeployment"),
+    "Capture": t("lab.capture"),
+    "Choose a local branch": t("lab.chooseALocalBranch"),
+    "Choose files → guest": t("lab.chooseFilesGuest"),
+    "Clipboard and files": t("lab.clipboardAndFiles"),
+    "Close Lab controls": t("lab.closeLabControls"),
+    "Compare latest": t("lab.compareLatest"),
+    "Confirm delete": t("lab.confirmDelete"),
+    "Confirm promote": t("lab.confirmPromote"),
+    "Confirm rebuild": t("lab.confirmRebuild"),
+    "Confirm reset": t("lab.confirmReset"),
+    "Confirm restore": t("lab.confirmRestore"),
+    "Console": t("lab.console"),
+    "Console actions": t("lab.consoleActions"),
+    "Could not start the Lab command. Check that the plugin is installed correctly and try again.": t("lab.couldNotStartTheLabCommandCheckThatThePluginIsInstalledCorrectlyAndTryAgain"),
+    "Create": t("lab.create"),
+    "Create checkpoint": t("lab.createCheckpoint"),
+    "Creates a disposable VM; a terminal opens for setup and authentication": t("lab.createsADisposableVMATerminalOpensForSetupAndAuthentication"),
+    "Ctrl+Left": t("lab.ctrlLeft"),
+    "Ctrl+R": t("lab.ctrlR"),
+    "Ctrl+Right": t("lab.ctrlRight"),
+    "Cursor": t("lab.cursor"),
+    "Custom resources": t("lab.customResources"),
+    "Delete": t("lab.delete"),
+    "Deploy branch": t("lab.deployBranch"),
+    "Deploy branch + reboot": t("lab.deployBranchReboot"),
+    "Develop": t("lab.develop"),
+    "Diagnostic bundle": t("lab.diagnosticBundle"),
+    "Diagnostics": t("lab.diagnostics"),
+    "Drag header · Alt+arrows move · Alt+Home centers · Ctrl+←/→ pages · Esc closes": t("lab.dragHeaderAltArrowsMoveAltHomeCentersCtrlPagesEscCloses"),
+    "Drive the graphical session without touching the console": t("lab.driveTheGraphicalSessionWithoutTouchingTheConsole"),
+    "Environment": t("lab.environment"),
+    "Escape": t("lab.escape"),
+    "Explicit one-shot transfers; no shared host folders": t("lab.explicitOneShotTransfersNoSharedHostFolders"),
+    "Extra room for heavier builds and multitasking": t("lab.extraRoomForHeavierBuildsAndMultitasking"),
+    "For quick checks and lightweight testing": t("lab.forQuickChecksAndLightweightTesting"),
+    "Full": t("lab.full"),
+    "Fullscreen": t("lab.fullscreen"),
+    "Gold image": t("lab.goldImage"),
+    "Gold image unavailable": t("lab.goldImageUnavailable"),
+    "Guest Downloads → host": t("lab.guestDownloadsHost"),
+    "Guest clipboard → host": t("lab.guestClipboardHost"),
+    "Guest command": t("lab.guestCommand"),
+    "Guest shortcuts": t("lab.guestShortcuts"),
+    "HOME": t("lab.hOME"),
+    "Health dashboard": t("lab.healthDashboard"),
+    "Health unavailable": t("lab.healthUnavailable"),
+    "High-performance Lab allocation; Custom can go higher": t("lab.highPerformanceLabAllocationCustomCanGoHigher"),
+    "Host clipboard → guest": t("lab.hostClipboardGuest"),
+    "Install Lab VM": t("lab.installLabVM"),
+    "Install the guest": t("lab.installTheGuest"),
+    "Isolated": t("lab.isolated"),
+    "Isolated network": t("lab.isolatedNetwork"),
+    "Keep in bar": t("lab.keepInBar"),
+    "Lab controls · middle click fullscreen · right click screenshot": t("lab.labControlsMiddleClickFullscreenRightClickScreenshot"),
+    "Lab controls · viewer closed": t("lab.labControlsViewerClosed"),
+    "Launcher": t("lab.launcher"),
+    "Light": t("lab.light"),
+    "Local cursor": t("lab.localCursor"),
+    "Lock": t("lab.lock"),
+    "Lock guest": t("lab.lockGuest"),
+    "Menu bar pin": t("lab.menuBarPin"),
+    "Model.js": t("lab.modelJs"),
+    "NAT": t("lab.nAT"),
+    "NAT network": t("lab.nATNetwork"),
+    "Named checkpoints": t("lab.namedCheckpoints"),
+    "Network mode": t("lab.networkMode"),
+    "Network unavailable": t("lab.networkUnavailable"),
+    "No captured artifacts": t("lab.noCapturedArtifacts"),
+    "No checkout deployed": t("lab.noCheckoutDeployed"),
+    "No local branches": t("lab.noLocalBranches"),
+    "OMARCHY_LAB_NAME": t("lab.oMARCHYLABNAME"),
+    "OMARCHY_LAB_VIEWER_SETTINGS": t("lab.oMARCHYLABVIEWERSETTINGS"),
+    "OMARCHY_PATH": t("lab.oMARCHYPATH"),
+    "Offline": t("lab.offline"),
+    "Offline network": t("lab.offlineNetwork"),
+    "Omarchy Lab": t("lab.omarchyLab"),
+    "Open Lab": t("lab.openLab"),
+    "Open launcher": t("lab.openLauncher"),
+    "Open terminal": t("lab.openTerminal"),
+    "Opening ": t("lab.opening"),
+    "Opening Lab": t("lab.openingLab"),
+    "Opening Lab…": t("lab.openingLabLabel"),
+    "Opening installer": t("lab.openingInstaller"),
+    "Opening installer…": t("lab.openingInstallerLabel"),
+    "Opening terminal…": t("lab.openingTerminal"),
+    "Performance": t("lab.performance"),
+    "Preferences persist between sessions": t("lab.preferencesPersistBetweenSessions"),
+    "Promote current": t("lab.promoteCurrent"),
+    "Pull Downloads": t("lab.pullDownloads"),
+    "Reboot": t("lab.reboot"),
+    "Rebuild from ISO": t("lab.rebuildFromISO"),
+    "Receive clipboard": t("lab.receiveClipboard"),
+    "Recommended for most development and UI testing": t("lab.recommendedForMostDevelopmentAndUITesting"),
+    "Record 10s": t("lab.record10s"),
+    "Recording": t("lab.recording"),
+    "Refresh Lab status": t("lab.refreshLabStatus"),
+    "Refresh health": t("lab.refreshHealth"),
+    "Reload Hyprland": t("lab.reloadHyprland"),
+    "Rename": t("lab.rename"),
+    "Rename checkpoint": t("lab.renameCheckpoint"),
+    "Reset": t("lab.reset"),
+    "Reset requires a second confirmation": t("lab.resetRequiresASecondConfirmation"),
+    "Resize the guest and viewer together": t("lab.resizeTheGuestAndViewerTogether"),
+    "Resource profile": t("lab.resourceProfile"),
+    "Resources unavailable": t("lab.resourcesUnavailable"),
+    "Restart shell": t("lab.restartShell"),
+    "Restore": t("lab.restore"),
+    "Run": t("lab.run"),
+    "Run scenario": t("lab.runScenario"),
+    "Scale content while preserving its shape": t("lab.scaleContentWhilePreservingItsShape"),
+    "Scenario ": t("lab.scenario"),
+    "Scenario runner": t("lab.scenarioRunner"),
+    "Screenshot": t("lab.screenshot"),
+    "Screenshot comparison": t("lab.screenshotComparison"),
+    "Search local branches…": t("lab.searchLocalBranches"),
+    "Select Confirm ": t("lab.selectConfirm"),
+    "Send clipboard": t("lab.sendClipboard"),
+    "Send files": t("lab.sendFiles"),
+    "Stop": t("lab.stop"),
+    "Sync branch": t("lab.syncBranch"),
+    "Terminal": t("lab.terminal"),
+    "USB": t("lab.uSB"),
+    "USB redirection": t("lab.uSBRedirection"),
+    "Validated command arrays; shell strings are never evaluated": t("lab.validatedCommandArraysShellStringsAreNeverEvaluated"),
+    "Viewer": t("lab.viewer"),
+    "Wake": t("lab.wake"),
+    "Wake guest": t("lab.wakeGuest"),
+    "Zoom": t("lab.zoom"),
+  })
+  function displayText(value) {
+    value = String(value || "")
+    if (Object.prototype.hasOwnProperty.call(displayStrings, value)) return displayStrings[value]
+    var match = value.match(/^Opening (.*) terminal$/)
+    if (match) return t("lab.openingActionTerminal").arg(displayText(match[1]))
+    match = value.match(/^Select Confirm (.*) within five seconds\.$/)
+    if (match) return t("lab.confirmActionPrompt").arg(displayText(match[1]))
+    match = value.match(/^(.*) resources$/)
+    if (match) return t("lab.actionResources").arg(displayText(match[1]))
+    match = value.match(/^(.*) failed$/)
+    if (match) return t("lab.actionFailed").arg(displayText(match[1]))
+    return value
+  }
 
   function labCommand(name) {
     if (name.startsWith("/")) return name
@@ -32,16 +192,22 @@ Item {
   property bool closeAfterAction: false
   property int currentPage: 0
   property var status: Model.defaultStatus()
-  property string healthSummary: "Health unavailable"
-  property string networkSummary: "Network unavailable"
-  property string resourceSummary: "Resources unavailable"
+  property string healthRaw: ""
+  readonly property string healthSummary: Model.healthText(healthRaw, root.t, I18n.formatNumber)
+  property string networkRaw: ""
+  readonly property string networkSummary: Model.networkText(networkRaw, root.t, I18n.formatNumber)
+  property string resourceRaw: ""
+  readonly property string resourceSummary: Model.resourceText(resourceRaw, root.t, I18n.formatNumber)
   property var resources: Model.defaultResources()
   property int customResourceCpus: 1
   property int customResourceMemoryGiB: 1
   property bool customResourcesDirty: false
-  property string deploymentSummary: "No checkout deployed"
-  property string goldSummary: "Gold image unavailable"
-  property string artifactSummary: "No captured artifacts"
+  property string deploymentRaw: ""
+  readonly property string deploymentSummary: Model.deploymentText(deploymentRaw, root.t, I18n.formatNumber)
+  property string goldRaw: ""
+  readonly property string goldSummary: Model.goldText(goldRaw, root.t, I18n.formatNumber)
+  property string artifactRaw: ""
+  readonly property string artifactSummary: Model.artifactText(artifactRaw, root.t, I18n.formatNumber)
   property var branches: []
   property var checkpoints: []
   property var scenarios: []
@@ -61,7 +227,7 @@ Item {
   readonly property var fullResources: Model.profileAllocation(resources, "full")
   readonly property int maximumResourceCpus: Math.max(1, Number(resources.host.safeCpus || 1))
   readonly property int maximumResourceMemoryGiB: Model.memoryGiB(resources.host.safeMemoryBytes)
-  readonly property color foreground: Color.popups.text
+  readonly property color foreground: Commons.Color.popups.text
   readonly property color dim: Qt.darker(foreground, 1.55)
   readonly property string pluginId: (manifest && manifest.id) || "acrogenesis.lab"
   readonly property real currentPageHeight: {
@@ -138,7 +304,7 @@ Item {
   }
 
   function terminalButtonText(action, text) {
-    return busy && openingTerminalAction === action ? "Opening terminal…" : text
+    return busy && openingTerminalAction === action ? root.t("lab.openingTerminal") : text
   }
 
   function actionFailedToStart() {
@@ -212,7 +378,7 @@ Item {
   Process {
     id: healthProc
     command: [root.labCommand("omarchy-lab-health"), "--json"]
-    stdout: StdioCollector { waitForEnd: true; onStreamFinished: root.healthSummary = Model.healthText(text) }
+    stdout: StdioCollector { waitForEnd: true; onStreamFinished: root.healthRaw = String(text || "") }
   }
 
   Process {
@@ -235,7 +401,7 @@ Item {
   Process {
     id: checkoutStatusProc
     command: [root.labCommand("omarchy-lab-checkout"), "status", "--json"]
-    stdout: StdioCollector { waitForEnd: true; onStreamFinished: root.deploymentSummary = Model.deploymentText(text) }
+    stdout: StdioCollector { waitForEnd: true; onStreamFinished: root.deploymentRaw = String(text || "") }
   }
 
   Process {
@@ -254,7 +420,7 @@ Item {
   Process {
     id: networkStatusProc
     command: [root.labCommand("omarchy-lab-network"), "status", "--json"]
-    stdout: StdioCollector { waitForEnd: true; onStreamFinished: root.networkSummary = Model.networkText(text) }
+    stdout: StdioCollector { waitForEnd: true; onStreamFinished: root.networkRaw = String(text || "") }
   }
 
   Process {
@@ -265,7 +431,7 @@ Item {
       onStreamFinished: {
         var parsed = Model.parseResources(text)
         root.resources = parsed
-        root.resourceSummary = Model.resourceText(parsed)
+        root.resourceRaw = String(text || "")
         if (parsed.available && !root.customResourcesDirty) {
           root.customResourceCpus = parsed.cpus.configured
           root.customResourceMemoryGiB = Model.memoryGiB(parsed.memory.configuredBytes)
@@ -277,13 +443,13 @@ Item {
   Process {
     id: goldStatusProc
     command: [root.labCommand("omarchy-lab-gold"), "status", "--json"]
-    stdout: StdioCollector { waitForEnd: true; onStreamFinished: root.goldSummary = Model.goldText(text) }
+    stdout: StdioCollector { waitForEnd: true; onStreamFinished: root.goldRaw = String(text || "") }
   }
 
   Process {
     id: artifactListProc
     command: [root.labCommand("omarchy-lab-capture"), "list", "--json"]
-    stdout: StdioCollector { waitForEnd: true; onStreamFinished: root.artifactSummary = Model.artifactText(text) }
+    stdout: StdioCollector { waitForEnd: true; onStreamFinished: root.artifactRaw = String(text || "") }
   }
 
   Process {
@@ -339,7 +505,7 @@ Item {
 
     Rectangle {
       anchors.fill: parent
-      color: Color.menu.scrim
+      color: Commons.Color.menu.scrim
       MouseArea { anchors.fill: parent; onClicked: root.dismiss() }
     }
 
@@ -357,9 +523,9 @@ Item {
         anchors.verticalCenterOffset: root.cardOffsetY
         width: Math.min(parent.width - Style.space(24), Style.space(960))
         height: Math.min(parent.height - Style.space(24), cardContent.implicitHeight + Style.space(40))
-        color: Color.popups.background
+        color: Commons.Color.popups.background
         radius: Style.cornerRadius
-        borderSpec: Border.surfaceSpec("popups", "border", Color.popups.border, Math.max(1, Style.normalBorderWidth))
+        borderSpec: Border.surfaceSpec("popups", "border", Commons.Color.popups.border, Math.max(1, Style.normalBorderWidth))
         MouseArea { anchors.fill: parent; onClicked: {} }
 
         Behavior on height {
@@ -382,18 +548,18 @@ Item {
               acceptedButtons: Qt.LeftButton
               onTranslationChanged: function(delta) { root.moveCardBy(delta.x, delta.y) }
             }
-            Text { text: "󰆧"; color: Color.accent; font.family: Style.font.family; font.pixelSize: Style.font.display }
+            Text { textFormat: Text.PlainText; text: "󰆧"; color: Commons.Color.accent; font.family: Style.font.family; font.pixelSize: Style.font.display }
             ColumnLayout {
               spacing: Style.space(2)
-              Text { text: "Omarchy Lab"; color: root.foreground; font.family: Style.font.family; font.pixelSize: Style.font.title; font.bold: true }
-              Text { text: Model.statusText(root.status); textFormat: Text.PlainText; color: root.dim; font.family: Style.font.family; font.pixelSize: Style.font.bodySmall }
+              Text { textFormat: Text.PlainText; text: labStrings.t("lab.omarchyLab"); color: root.foreground; font.family: Style.font.family; font.pixelSize: Style.font.title; font.bold: true }
+              Text { text: Model.statusText(root.status, root.t); textFormat: Text.PlainText; color: root.dim; font.family: Style.font.family; font.pixelSize: Style.font.bodySmall }
             }
             Item { Layout.fillWidth: true }
             RowLayout {
               spacing: Style.space(4)
               Button {
                 iconText: "󰑐"
-                tooltipText: "Refresh Lab status"
+                tooltipText: labStrings.t("lab.refreshLabStatus")
                 focusable: true
                 foreground: root.foreground
                 background: "transparent"
@@ -406,7 +572,7 @@ Item {
               }
               Button {
                 iconText: "󰅖"
-                tooltipText: "Close Lab controls"
+                tooltipText: labStrings.t("lab.closeLabControls")
                 focusable: true
                 foreground: root.foreground
                 background: "transparent"
@@ -421,14 +587,14 @@ Item {
 
           ButtonGroup {
             Layout.alignment: Qt.AlignHCenter
-            options: root.pageOptions
+            options: root.pageOptions.map(function(value) { return {value: value, label: root.displayText(value)} })
             value: root.pageOptions[root.currentPage]
             foreground: root.foreground
             background: "transparent"
             onChanged: function(value) { root.pageChanged(value) }
           }
 
-          Text { visible: root.errorText !== "" && !root.inlineInstallError; text: root.errorText; textFormat: Text.PlainText; color: Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.bodySmall; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+          Text { visible: root.errorText !== "" && !root.inlineInstallError; text: root.displayText(root.errorText); textFormat: Text.PlainText; color: Commons.Color.urgent; font.family: Style.font.family; font.pixelSize: Style.font.bodySmall; wrapMode: Text.WordWrap; Layout.fillWidth: true }
 
           QQC.ScrollView {
             id: pageScroll
@@ -452,16 +618,16 @@ Item {
 
                 ActionButton {
                   visible: root.status.installed
-                  text: root.busy && root.actionLabel === "Opening Lab" ? "Opening Lab…" : "Open Lab"
+                  text: root.busy && root.actionLabel === "Opening Lab" ? labStrings.t("lab.openingLabLabel") : labStrings.t("lab.openLab") // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
                   onClicked: root.openLab()
                 }
 
                 WorkbenchSection {
                   visible: !root.status.installed
-                  title: "Install the guest"
-                  subtitle: "Creates a disposable VM; a terminal opens for setup and authentication"
+                  title: labStrings.t("lab.installTheGuest")
+                  subtitle: labStrings.t("lab.createsADisposableVMATerminalOpensForSetupAndAuthentication")
                   ActionButton {
-                    text: root.installerOpening ? "Opening installer…" : "Install Lab VM"
+                    text: root.installerOpening ? labStrings.t("lab.openingInstallerLabel") : labStrings.t("lab.installLabVM")
                     onClicked: root.openInstaller()
                   }
                   Text {
@@ -470,53 +636,53 @@ Item {
                     text: root.errorText
                     textFormat: Text.PlainText
                     wrapMode: Text.Wrap
-                    color: Color.urgent
+                    color: Commons.Color.urgent
                     font.family: Style.font.family
                     font.pixelSize: Style.font.caption
                   }
                 }
 
                 WorkbenchSection {
-                  title: "Aspect ratio"
-                  subtitle: "Resize the guest and viewer together"
+                  title: labStrings.t("lab.aspectRatio")
+                  subtitle: labStrings.t("lab.resizeTheGuestAndViewerTogether")
                   ButtonGroup { Layout.fillWidth: true; options: root.aspectOptions; value: root.status.aspect; foreground: root.foreground; background: "transparent"; onChanged: function(value) { root.runViewer(["aspect", value], "Aspect ratio") } }
                 }
 
                 WorkbenchSection {
-                  title: "Zoom"
-                  subtitle: "Scale content while preserving its shape"
-                  ButtonGroup { Layout.fillWidth: true; options: root.zoomOptions.map(function(value) { return { value: value, label: value + "%" } }); value: String(root.status.zoom); foreground: root.foreground; background: "transparent"; onChanged: function(value) { root.runViewer(["set", "zoom", value], "Zoom") } }
+                  title: labStrings.t("lab.zoom")
+                  subtitle: labStrings.t("lab.scaleContentWhilePreservingItsShape")
+                  ButtonGroup { Layout.fillWidth: true; options: root.zoomOptions.map(function(value) { return { value: value, label: value + "%" } }); value: String(root.status.zoom); foreground: root.foreground; background: "transparent"; onChanged: function(value) { root.runViewer(["set", "zoom", value], labStrings.t("lab.zoom")) } }
                 }
 
                 WorkbenchSection {
-                  title: "Viewer"
-                  subtitle: "Preferences persist between sessions"
+                  title: labStrings.t("lab.viewer")
+                  subtitle: labStrings.t("lab.preferencesPersistBetweenSessions")
                   GridLayout {
                     Layout.fillWidth: true
                     columns: 2
                     columnSpacing: Style.space(8)
                     rowSpacing: Style.space(8)
-                    ActionButton { text: "Auto resize"; selected: root.status.autoResize; onClicked: root.runViewer(["set", "auto-resize", root.status.autoResize ? "false" : "true"], "Auto resize") }
-                    ActionButton { text: "Local cursor"; selected: root.status.cursor === "local"; onClicked: root.runViewer(["set", "cursor", root.status.cursor === "local" ? "auto" : "local"], "Cursor") }
-                    ActionButton { text: "Audio"; selected: root.status.audio; onClicked: root.runViewer(["set", "audio", root.status.audio ? "false" : "true"], "Audio") }
-                    ActionButton { text: "USB"; selected: root.status.usbRedirection; onClicked: root.runViewer(["set", "usb-redirection", root.status.usbRedirection ? "false" : "true"], "USB redirection") }
-                    ActionButton { text: "Keep in bar"; selected: root.status.keepInBar; onClicked: root.runViewer(["set", "keep-in-bar", root.status.keepInBar ? "false" : "true"], "Menu bar pin") }
+                    ActionButton { text: labStrings.t("lab.autoResize"); selected: root.status.autoResize; onClicked: root.runViewer(["set", "auto-resize", root.status.autoResize ? "false" : "true"], "Auto resize") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.localCursor"); selected: root.status.cursor === "local"; onClicked: root.runViewer(["set", "cursor", root.status.cursor === "local" ? "auto" : "local"], "Cursor") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.audio"); selected: root.status.audio; onClicked: root.runViewer(["set", "audio", root.status.audio ? "false" : "true"], "Audio") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.uSB"); selected: root.status.usbRedirection; onClicked: root.runViewer(["set", "usb-redirection", root.status.usbRedirection ? "false" : "true"], "USB redirection") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.keepInBar"); selected: root.status.keepInBar; onClicked: root.runViewer(["set", "keep-in-bar", root.status.keepInBar ? "false" : "true"], "Menu bar pin") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
                   }
                 }
 
                 WorkbenchSection {
-                  title: "Console actions"
-                  subtitle: "Reset requires a second confirmation"
+                  title: labStrings.t("lab.consoleActions")
+                  subtitle: labStrings.t("lab.resetRequiresASecondConfirmation")
                   GridLayout {
                     Layout.fillWidth: true
                     columns: 4
                     columnSpacing: Style.space(8)
                     rowSpacing: Style.space(8)
-                    ActionButton { text: "Fullscreen"; onClicked: root.runViewer(["fullscreen"], "Fullscreen") }
-                    ActionButton { text: "Screenshot"; onClicked: root.runViewer(["screenshot"], "Screenshot") }
-                    ActionButton { text: "Reboot"; onClicked: root.runViewer(["reboot"], "Reboot") }
-                    ActionButton { text: "Stop"; danger: true; onClicked: root.runViewer(["stop"], "Stop", true) }
-                    ActionButton { text: root.terminalButtonText("reset", root.armedAction === "reset" ? "Confirm reset" : "Reset"); danger: true; onClicked: root.armOrRun("reset", root.viewerCommand, ["reset"], "reset") }
+                    ActionButton { text: labStrings.t("lab.fullscreen"); onClicked: root.runViewer(["fullscreen"], "Fullscreen") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.screenshot"); onClicked: root.runViewer(["screenshot"], "Screenshot") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.reboot"); onClicked: root.runViewer(["reboot"], "Reboot") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.stop"); danger: true; onClicked: root.runViewer(["stop"], "Stop", true) } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: root.terminalButtonText("reset", root.armedAction === "reset" ? labStrings.t("lab.confirmReset") : labStrings.t("lab.reset")); danger: true; onClicked: root.armOrRun("reset", root.viewerCommand, ["reset"], "reset") }
                   }
                 }
               }
@@ -528,53 +694,53 @@ Item {
                 spacing: Style.space(12)
 
                 WorkbenchSection {
-                  title: "Health dashboard"
+                  title: labStrings.t("lab.healthDashboard")
                   subtitle: root.healthSummary
                   RowLayout {
                     Layout.fillWidth: true
-                    ActionButton { text: "Refresh health"; onClicked: root.startProcess(healthProc) }
-                    ActionButton { text: "Diagnostics"; onClicked: root.runCommand("omarchy-lab-capture", ["bundle"], "Diagnostic bundle") }
+                    ActionButton { text: labStrings.t("lab.refreshHealth"); onClicked: root.startProcess(healthProc) }
+                    ActionButton { text: labStrings.t("lab.diagnostics"); onClicked: root.runCommand("omarchy-lab-capture", ["bundle"], "Diagnostic bundle") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
                   }
                 }
 
                 WorkbenchSection {
-                  title: "Branch deployment"
+                  title: labStrings.t("lab.branchDeployment")
                   subtitle: root.deploymentSummary
                   SearchableDropdown {
                     id: branchDropdown
                     Layout.fillWidth: true
                     showLabel: false
-                    placeholderText: "Search local branches…"
-                    emptyText: "No local branches"
-                    triggerLabel: "Choose a local branch"
+                    placeholderText: labStrings.t("lab.searchLocalBranches")
+                    emptyText: labStrings.t("lab.noLocalBranches")
+                    triggerLabel: labStrings.t("lab.chooseALocalBranch")
                     options: root.branches
                     value: root.selectedBranch
                     foreground: root.foreground
-                    background: Color.popups.background
+                    background: Commons.Color.popups.background
                     onChanged: function(value) { root.selectedBranch = value }
                   }
                   RowLayout {
                     Layout.fillWidth: true
-                    ActionButton { text: "Deploy branch + reboot"; enabled: !root.busy && root.selectedBranch !== ""; onClicked: root.runCommand("omarchy-lab-checkout", ["deploy", "--branch", root.selectedBranch], "Deploy branch") }
-                    ActionButton { text: "Sync branch"; onClicked: root.runCommand("omarchy-lab-checkout", ["sync"], "Sync branch") }
+                    ActionButton { text: labStrings.t("lab.deployBranchReboot"); enabled: !root.busy && root.selectedBranch !== ""; onClicked: root.runCommand("omarchy-lab-checkout", ["deploy", "--branch", root.selectedBranch], "Deploy branch") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.syncBranch"); onClicked: root.runCommand("omarchy-lab-checkout", ["sync"], "Sync branch") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
                   }
                 }
 
                 WorkbenchSection {
-                  title: "Named checkpoints"
-                  subtitle: root.checkpoints.length + " saved · disk consistent"
+                  title: labStrings.t("lab.namedCheckpoints")
+                  subtitle: labStrings.t("lab.savedCheckpoints").arg(root.checkpoints.length)
                   RowLayout {
                     Layout.fillWidth: true
-                    TextField { id: checkpointNameField; Layout.fillWidth: true; placeholderText: "checkpoint name"; foreground: root.foreground; accent: Color.accent }
-                    ActionButton { Layout.fillWidth: false; text: "Create"; onClicked: root.runCommand("omarchy-lab-checkpoint", ["create"].concat(checkpointNameField.text === "" ? [] : [checkpointNameField.text]), "Create checkpoint") }
+                    TextField { id: checkpointNameField; Layout.fillWidth: true; placeholderText: "checkpoint name"; foreground: root.foreground; accent: Commons.Color.accent }
+                    ActionButton { Layout.fillWidth: false; text: labStrings.t("lab.create"); onClicked: root.runCommand("omarchy-lab-checkpoint", ["create"].concat(checkpointNameField.text === "" ? [] : [checkpointNameField.text]), "Create checkpoint") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
                   }
-                  Dropdown { id: checkpointDropdown; Layout.fillWidth: true; showLabel: false; options: root.checkpoints; value: root.selectedCheckpoint; foreground: root.foreground; background: Color.popups.background; onChanged: function(value) { root.selectedCheckpoint = value } }
+                  Dropdown { id: checkpointDropdown; Layout.fillWidth: true; showLabel: false; options: root.checkpoints; value: root.selectedCheckpoint; foreground: root.foreground; background: Commons.Color.popups.background; onChanged: function(value) { root.selectedCheckpoint = value } }
                   RowLayout {
                     Layout.fillWidth: true
-                    TextField { id: checkpointRenameField; Layout.fillWidth: true; placeholderText: "new name"; foreground: root.foreground; accent: Color.accent }
-                    ActionButton { Layout.fillWidth: false; text: "Rename"; enabled: !root.busy && root.selectedCheckpoint !== "" && checkpointRenameField.text !== ""; onClicked: root.runCommand("omarchy-lab-checkpoint", ["rename", root.selectedCheckpoint, checkpointRenameField.text], "Rename checkpoint") }
-                    ActionButton { Layout.fillWidth: false; text: root.armedAction === "restore" ? "Confirm restore" : "Restore"; danger: true; enabled: !root.busy && root.selectedCheckpoint !== ""; onClicked: root.armOrRun("restore", "omarchy-lab-checkpoint", ["restore", root.selectedCheckpoint, "--yes"], "restore") }
-                    ActionButton { Layout.fillWidth: false; text: root.armedAction === "delete-checkpoint" ? "Confirm delete" : "Delete"; danger: true; enabled: !root.busy && root.selectedCheckpoint !== ""; onClicked: root.armOrRun("delete-checkpoint", "omarchy-lab-checkpoint", ["delete", root.selectedCheckpoint, "--yes"], "delete") }
+                    TextField { id: checkpointRenameField; Layout.fillWidth: true; placeholderText: "new name"; foreground: root.foreground; accent: Commons.Color.accent }
+                    ActionButton { Layout.fillWidth: false; text: labStrings.t("lab.rename"); enabled: !root.busy && root.selectedCheckpoint !== "" && checkpointRenameField.text !== ""; onClicked: root.runCommand("omarchy-lab-checkpoint", ["rename", root.selectedCheckpoint, checkpointRenameField.text], "Rename checkpoint") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { Layout.fillWidth: false; text: root.armedAction === "restore" ? labStrings.t("lab.confirmRestore") : labStrings.t("lab.restore"); danger: true; enabled: !root.busy && root.selectedCheckpoint !== ""; onClicked: root.armOrRun("restore", "omarchy-lab-checkpoint", ["restore", root.selectedCheckpoint, "--yes"], "restore") }
+                    ActionButton { Layout.fillWidth: false; text: root.armedAction === "delete-checkpoint" ? labStrings.t("lab.confirmDelete") : labStrings.t("lab.delete"); danger: true; enabled: !root.busy && root.selectedCheckpoint !== ""; onClicked: root.armOrRun("delete-checkpoint", "omarchy-lab-checkpoint", ["delete", root.selectedCheckpoint, "--yes"], "delete") }
                   }
                 }
               }
@@ -586,22 +752,22 @@ Item {
                 spacing: Style.space(12)
 
                 WorkbenchSection {
-                  title: "Network mode"
+                  title: labStrings.t("lab.networkMode")
                   subtitle: root.networkSummary
                   RowLayout {
                     Layout.fillWidth: true
-                    ActionButton { text: "NAT"; onClicked: root.runCommand("omarchy-lab-network", ["nat"], "NAT network") }
-                    ActionButton { text: "Isolated"; onClicked: root.runCommand("omarchy-lab-network", ["isolated"], "Isolated network") }
-                    ActionButton { text: "Offline"; danger: true; onClicked: root.runCommand("omarchy-lab-network", ["offline"], "Offline network") }
+                    ActionButton { text: labStrings.t("lab.nAT"); onClicked: root.runCommand("omarchy-lab-network", ["nat"], "NAT network") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.isolated"); onClicked: root.runCommand("omarchy-lab-network", ["isolated"], "Isolated network") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.offline"); danger: true; onClicked: root.runCommand("omarchy-lab-network", ["offline"], "Offline network") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
                   }
                 }
 
                 WorkbenchSection {
-                  title: "Resource profile"
-                  subtitle: "Current: " + root.resourceSummary + " · changes restart the guest"
+                  title: labStrings.t("lab.resourceProfile")
+                  subtitle: labStrings.t("lab.currentResources").arg(root.resourceSummary)
                   Text {
                     Layout.fillWidth: true
-                    text: Model.resourceLimitsText(root.resources)
+                    text: Model.resourceLimitsText(root.resources, root.t, I18n.formatNumber)
                     textFormat: Text.PlainText
                     color: root.dim
                     font.family: Style.font.family
@@ -615,29 +781,29 @@ Item {
                     columnSpacing: Style.space(8)
                     rowSpacing: Style.space(8)
                     ActionButton {
-                      text: "Light · " + root.lightResources.cpus + " cores · " + root.lightResources.memoryGiB + " GiB"
-                      tooltipText: "For quick checks and lightweight testing"
+                      text: labStrings.t("lab.lightResourcesDescription").arg(root.lightResources.cpus).arg(root.lightResources.memoryGiB)
+                      tooltipText: labStrings.t("lab.forQuickChecksAndLightweightTesting")
                       selected: root.resources.profile === "light"
                       enabled: root.resources.available && !root.busy
                       onClicked: root.setResourceProfile("light", "Light")
                     }
                     ActionButton {
-                      text: "Balanced (recommended) · " + root.balancedResources.cpus + " cores · " + root.balancedResources.memoryGiB + " GiB"
-                      tooltipText: "Recommended for most development and UI testing"
+                      text: labStrings.t("lab.balancedResourcesDescription").arg(root.balancedResources.cpus).arg(root.balancedResources.memoryGiB)
+                      tooltipText: labStrings.t("lab.recommendedForMostDevelopmentAndUITesting")
                       selected: root.resources.profile === "balanced"
                       enabled: root.resources.available && !root.busy
                       onClicked: root.setResourceProfile("balanced", "Balanced")
                     }
                     ActionButton {
-                      text: "Performance · " + root.performanceResources.cpus + " cores · " + root.performanceResources.memoryGiB + " GiB"
-                      tooltipText: "Extra room for heavier builds and multitasking"
+                      text: labStrings.t("lab.performanceResourcesDescription").arg(root.performanceResources.cpus).arg(root.performanceResources.memoryGiB)
+                      tooltipText: labStrings.t("lab.extraRoomForHeavierBuildsAndMultitasking")
                       selected: root.resources.profile === "performance"
                       enabled: root.resources.available && !root.busy
                       onClicked: root.setResourceProfile("performance", "Performance")
                     }
                     ActionButton {
-                      text: "Full · " + root.fullResources.cpus + " cores · " + root.fullResources.memoryGiB + " GiB"
-                      tooltipText: "High-performance Lab allocation; Custom can go higher"
+                      text: labStrings.t("lab.fullResourcesDescription").arg(root.fullResources.cpus).arg(root.fullResources.memoryGiB)
+                      tooltipText: labStrings.t("lab.highPerformanceLabAllocationCustomCanGoHigher")
                       selected: root.resources.profile === "full"
                       enabled: root.resources.available && !root.busy
                       onClicked: root.setResourceProfile("full", "Full")
@@ -651,13 +817,13 @@ Item {
                       Layout.fillWidth: true
                       Layout.alignment: Qt.AlignBottom
                       fieldWidth: width
-                      label: "CPU cores (1–" + root.maximumResourceCpus + ")"
+                      label: labStrings.t("lab.cpuRange").arg(root.maximumResourceCpus)
                       from: 1
                       to: root.maximumResourceCpus
                       value: root.customResourceCpus
                       enabled: root.resources.available && !root.busy
                       foreground: root.foreground
-                      accent: Color.accent
+                      accent: Commons.Color.accent
                       fontFamily: Style.font.family
                       onModified: function(value) {
                         root.customResourceCpus = value
@@ -669,13 +835,13 @@ Item {
                       Layout.fillWidth: true
                       Layout.alignment: Qt.AlignBottom
                       fieldWidth: width
-                      label: "RAM in GiB (1–" + root.maximumResourceMemoryGiB + ")"
+                      label: labStrings.t("lab.memoryRange").arg(root.maximumResourceMemoryGiB)
                       from: 1
                       to: root.maximumResourceMemoryGiB
                       value: root.customResourceMemoryGiB
                       enabled: root.resources.available && !root.busy
                       foreground: root.foreground
-                      accent: Color.accent
+                      accent: Commons.Color.accent
                       fontFamily: Style.font.family
                       onModified: function(value) {
                         root.customResourceMemoryGiB = value
@@ -685,7 +851,7 @@ Item {
                     ActionButton {
                       Layout.fillWidth: false
                       Layout.alignment: Qt.AlignBottom
-                      text: "Apply custom"
+                      text: labStrings.t("lab.applyCustom")
                       selected: root.resources.profile === "custom" && !root.customResourcesDirty
                       enabled: root.resources.available && !root.busy
                       onClicked: root.applyCustomResources()
@@ -694,12 +860,12 @@ Item {
                 }
 
                 WorkbenchSection {
-                  title: "Gold image"
+                  title: labStrings.t("lab.goldImage")
                   subtitle: root.goldSummary
                   RowLayout {
                     Layout.fillWidth: true
-                    ActionButton { text: root.terminalButtonText("promote", root.armedAction === "promote" ? "Confirm promote" : "Promote current"); danger: true; onClicked: root.armOrRun("promote", "omarchy-lab-gold", ["promote", "--yes"], "promote") }
-                    ActionButton { text: root.terminalButtonText("rebuild", root.armedAction === "rebuild" ? "Confirm rebuild" : "Rebuild from ISO"); danger: true; onClicked: root.armOrRun("rebuild", "omarchy-lab-gold", ["rebuild", "--yes"], "rebuild") }
+                    ActionButton { text: root.terminalButtonText("promote", root.armedAction === "promote" ? labStrings.t("lab.confirmPromote") : labStrings.t("lab.promoteCurrent")); danger: true; onClicked: root.armOrRun("promote", "omarchy-lab-gold", ["promote", "--yes"], "promote") }
+                    ActionButton { text: root.terminalButtonText("rebuild", root.armedAction === "rebuild" ? labStrings.t("lab.confirmRebuild") : labStrings.t("lab.rebuildFromISO")); danger: true; onClicked: root.armOrRun("rebuild", "omarchy-lab-gold", ["rebuild", "--yes"], "rebuild") }
                   }
                 }
               }
@@ -711,32 +877,32 @@ Item {
                 spacing: Style.space(12)
 
                 WorkbenchSection {
-                  title: "Artifact capture"
+                  title: labStrings.t("lab.artifactCapture")
                   subtitle: root.artifactSummary
                   GridLayout {
                     Layout.fillWidth: true
                     columns: 4
                     columnSpacing: Style.space(8)
                     rowSpacing: Style.space(8)
-                    ActionButton { text: "Screenshot"; onClicked: root.runCommand("omarchy-lab-capture", ["screenshot", "--copy"], "Screenshot") }
-                    ActionButton { text: "Record 10s"; onClicked: root.recordViewer() }
-                    ActionButton { text: "Diagnostics"; onClicked: root.runCommand("omarchy-lab-capture", ["bundle", "--copy"], "Diagnostic bundle") }
-                    ActionButton { text: "Compare latest"; onClicked: root.runCommand("omarchy-lab-capture", ["compare", "--copy"], "Screenshot comparison") }
+                    ActionButton { text: labStrings.t("lab.screenshot"); onClicked: root.runCommand("omarchy-lab-capture", ["screenshot", "--copy"], "Screenshot") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.record10s"); onClicked: root.recordViewer() }
+                    ActionButton { text: labStrings.t("lab.diagnostics"); onClicked: root.runCommand("omarchy-lab-capture", ["bundle", "--copy"], "Diagnostic bundle") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.compareLatest"); onClicked: root.runCommand("omarchy-lab-capture", ["compare", "--copy"], "Screenshot comparison") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
                   }
                 }
 
                 WorkbenchSection {
-                  title: "Clipboard and files"
-                  subtitle: "Explicit one-shot transfers; no shared host folders"
+                  title: labStrings.t("lab.clipboardAndFiles")
+                  subtitle: labStrings.t("lab.explicitOneShotTransfersNoSharedHostFolders")
                   GridLayout {
                     Layout.fillWidth: true
                     columns: 2
                     columnSpacing: Style.space(8)
                     rowSpacing: Style.space(8)
-                    ActionButton { text: "Host clipboard → guest"; onClicked: root.runCommand("omarchy-lab-transfer", ["clipboard-to", "--host"], "Send clipboard") }
-                    ActionButton { text: "Guest clipboard → host"; onClicked: root.runCommand("omarchy-lab-transfer", ["clipboard-from", "--copy"], "Receive clipboard") }
-                    ActionButton { text: "Choose files → guest"; onClicked: root.runCommand("omarchy-lab-transfer", ["pick-to"], "Send files") }
-                    ActionButton { text: "Guest Downloads → host"; onClicked: root.runCommand("omarchy-lab-transfer", ["pull-downloads"], "Pull Downloads") }
+                    ActionButton { text: labStrings.t("lab.hostClipboardGuest"); onClicked: root.runCommand("omarchy-lab-transfer", ["clipboard-to", "--host"], "Send clipboard") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.guestClipboardHost"); onClicked: root.runCommand("omarchy-lab-transfer", ["clipboard-from", "--copy"], "Receive clipboard") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.chooseFilesGuest"); onClicked: root.runCommand("omarchy-lab-transfer", ["pick-to"], "Send files") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.guestDownloadsHost"); onClicked: root.runCommand("omarchy-lab-transfer", ["pull-downloads"], "Pull Downloads") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
                   }
                 }
               }
@@ -748,42 +914,42 @@ Item {
                 spacing: Style.space(12)
 
                 WorkbenchSection {
-                  title: "Guest shortcuts"
-                  subtitle: "Drive the graphical session without touching the console"
+                  title: labStrings.t("lab.guestShortcuts")
+                  subtitle: labStrings.t("lab.driveTheGraphicalSessionWithoutTouchingTheConsole")
                   GridLayout {
                     Layout.fillWidth: true
                     columns: 3
                     columnSpacing: Style.space(8)
                     rowSpacing: Style.space(8)
-                    ActionButton { text: "Terminal"; onClicked: root.runCommand("omarchy-lab-action", ["terminal"], "Open terminal") }
-                    ActionButton { text: "Launcher"; onClicked: root.runCommand("omarchy-lab-action", ["launcher"], "Open launcher") }
-                    ActionButton { text: "Lock"; onClicked: root.runCommand("omarchy-lab-action", ["lock"], "Lock guest") }
-                    ActionButton { text: "Wake"; onClicked: root.runCommand("omarchy-lab-action", ["wake"], "Wake guest") }
-                    ActionButton { text: "Restart shell"; onClicked: root.runCommand("omarchy-lab-action", ["restart-shell"], "Restart shell") }
-                    ActionButton { text: "Reload Hyprland"; onClicked: root.runCommand("omarchy-lab-action", ["reload-hyprland"], "Reload Hyprland") }
+                    ActionButton { text: labStrings.t("lab.terminal"); onClicked: root.runCommand("omarchy-lab-action", ["terminal"], "Open terminal") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.launcher"); onClicked: root.runCommand("omarchy-lab-action", ["launcher"], "Open launcher") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.lock"); onClicked: root.runCommand("omarchy-lab-action", ["lock"], "Lock guest") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.wake"); onClicked: root.runCommand("omarchy-lab-action", ["wake"], "Wake guest") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.restartShell"); onClicked: root.runCommand("omarchy-lab-action", ["restart-shell"], "Restart shell") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
+                    ActionButton { text: labStrings.t("lab.reloadHyprland"); onClicked: root.runCommand("omarchy-lab-action", ["reload-hyprland"], "Reload Hyprland") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
                   }
                   RowLayout {
                     Layout.fillWidth: true
-                    TextField { id: guestCommandField; Layout.fillWidth: true; placeholderText: "graphical-session command"; foreground: root.foreground; accent: Color.accent }
-                    ActionButton { Layout.fillWidth: false; text: "Run"; enabled: !root.busy && guestCommandField.text !== ""; onClicked: root.runCommand("omarchy-lab-vm", ["session", guestCommandField.text], "Guest command") }
+                    TextField { id: guestCommandField; Layout.fillWidth: true; placeholderText: "graphical-session command"; foreground: root.foreground; accent: Commons.Color.accent }
+                    ActionButton { Layout.fillWidth: false; text: labStrings.t("lab.run"); enabled: !root.busy && guestCommandField.text !== ""; onClicked: root.runCommand("omarchy-lab-vm", ["session", guestCommandField.text], "Guest command") } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
                   }
                 }
 
                 WorkbenchSection {
-                  title: "Scenario runner"
-                  subtitle: "Validated command arrays; shell strings are never evaluated"
-                  Dropdown { id: scenarioDropdown; Layout.fillWidth: true; showLabel: false; options: root.scenarios; value: root.selectedScenario; foreground: root.foreground; background: Color.popups.background; onChanged: function(value) { root.selectedScenario = value } }
+                  title: labStrings.t("lab.scenarioRunner")
+                  subtitle: labStrings.t("lab.validatedCommandArraysShellStringsAreNeverEvaluated")
+                  Dropdown { id: scenarioDropdown; Layout.fillWidth: true; showLabel: false; options: root.scenarios; value: root.selectedScenario; foreground: root.foreground; background: Commons.Color.popups.background; onChanged: function(value) { root.selectedScenario = value } }
                   RowLayout {
                     Layout.fillWidth: true
-                    ActionButton { text: "Run scenario"; enabled: !root.busy && root.selectedScenario !== "" && (root.selectedScenario !== "checkpoint-deploy" || root.selectedBranch !== ""); onClicked: root.runCommand("omarchy-lab-scenario", ["run", root.selectedScenario].concat(root.selectedScenario === "checkpoint-deploy" ? [root.selectedBranch, "--branch"] : []), "Scenario " + root.selectedScenario) }
+                    ActionButton { text: labStrings.t("lab.runScenario"); enabled: !root.busy && root.selectedScenario !== "" && (root.selectedScenario !== "checkpoint-deploy" || root.selectedBranch !== ""); onClicked: root.runCommand("omarchy-lab-scenario", ["run", root.selectedScenario].concat(root.selectedScenario === "checkpoint-deploy" ? [root.selectedBranch, "--branch"] : []), "Scenario " + root.selectedScenario) } // i18n: ignore — event labels and comparisons are internal English state; display text uses t()
                   }
                 }
               }
             }
           }
 
-          Text { visible: root.busy || root.actionOutput !== ""; text: root.busy ? root.actionLabel + "…" : root.actionOutput; textFormat: Text.PlainText; color: root.busy ? Color.accent : root.dim; font.family: Style.font.family; font.pixelSize: Style.font.caption; elide: Text.ElideMiddle; maximumLineCount: 2; wrapMode: Text.Wrap; Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter }
-          Text { text: "Drag header · Alt+arrows move · Alt+Home centers · Ctrl+←/→ pages · Esc closes"; color: root.dim; font.family: Style.font.family; font.pixelSize: Style.font.caption; Layout.alignment: Qt.AlignHCenter }
+          Text { visible: root.busy || root.actionOutput !== ""; text: root.busy ? root.displayText(root.actionLabel) + "…" : root.displayText(root.actionOutput); textFormat: Text.PlainText; color: root.busy ? Commons.Color.accent : root.dim; font.family: Style.font.family; font.pixelSize: Style.font.caption; elide: Text.ElideMiddle; maximumLineCount: 2; wrapMode: Text.Wrap; Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter }
+          Text { textFormat: Text.PlainText; text: labStrings.t("lab.dragHeaderAltArrowsMoveAltHomeCentersCtrlPagesEscCloses"); color: root.dim; font.family: Style.font.family; font.pixelSize: Style.font.caption; Layout.alignment: Qt.AlignHCenter }
         }
       }
     }
@@ -821,7 +987,7 @@ Item {
     Layout.fillWidth: true
     focusable: true
     bordered: true
-    foreground: danger ? Color.urgent : root.foreground
+    foreground: danger ? Commons.Color.urgent : root.foreground
     background: "transparent"
     enabled: !root.busy
   }

@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import qs.Commons
 import qs.Ui
 import "Model.js" as Model
@@ -12,16 +13,17 @@ BarWidget {
     if (name.startsWith("/")) return name
     return decodeURIComponent(String(Qt.resolvedUrl("bin/" + name)).replace(/^file:\/\//, ""))
   }
+
+  LabTranslations { id: labStrings }
+  function t(key, fallback) { return labStrings.t(key, fallback) }
   moduleName: "acrogenesis.lab"
 
-  property bool viewerActive: false
-  property bool keepInBar: false
+  readonly property string domainName: Quickshell.env("OMARCHY_LAB_NAME") || "omarchy-lab"
+  readonly property bool viewerActive: Model.viewerPresent(Hyprland.toplevels.values, domainName)
+  readonly property bool keepInBar: Model.parseBarStatus(viewerSettings.text()).keepInBar
   readonly property string viewerCommand: labCommand("omarchy-lab-viewer")
   readonly property bool shown: viewerActive || keepInBar
 
-  function refresh() {
-    if (!statusProc.running) statusProc.running = true
-  }
 
   function summon() {
     if (bar && bar.shell) bar.shell.summon(root.moduleName, "{}")
@@ -31,36 +33,19 @@ BarWidget {
   implicitWidth: shown ? button.implicitWidth : 0
   implicitHeight: button.implicitHeight
 
-  Process {
-    id: statusProc
-    command: [root.viewerCommand, "active", "--json"]
-    stdout: StdioCollector {
-      waitForEnd: true
-      onStreamFinished: {
-        const status = Model.parseBarStatus(text)
-        root.viewerActive = status.viewerActive
-        root.keepInBar = status.keepInBar
-      }
-    }
-    onExited: function(exitCode) {
-      if (exitCode !== 0) {
-        root.viewerActive = false
-        root.keepInBar = false
-      }
-    }
+  FileView {
+    id: viewerSettings
+    path: Quickshell.env("OMARCHY_LAB_VIEWER_SETTINGS") || Quickshell.env("HOME") + "/.config/omarchy/lab-vm/viewer.json"
+    watchChanges: true
+    blockLoading: true
+    printErrors: false
+    onFileChanged: reload()
   }
 
   Process {
     id: actionProc
   }
 
-  Timer {
-    interval: 2000
-    repeat: true
-    running: true
-    triggeredOnStart: true
-    onTriggered: root.refresh()
-  }
 
   BarIconButton {
     id: button
@@ -68,7 +53,7 @@ BarWidget {
     bar: root.bar
     text: "󰆧"
     active: root.viewerActive
-    tooltipText: root.viewerActive ? "Lab controls · middle click fullscreen · right click screenshot" : "Lab controls · viewer closed"
+    tooltipText: root.viewerActive ? labStrings.t("lab.labControlsMiddleClickFullscreenRightClickScreenshot") : labStrings.t("lab.labControlsViewerClosed")
     onPressed: function(buttonCode) {
       if (!root.viewerActive) {
         root.summon()

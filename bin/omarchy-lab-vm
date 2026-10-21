@@ -117,7 +117,7 @@ valid_aspect_ratio() {
 
 pick_aspect_ratio() {
   local selection
-  selection=$(omarchy-menu-select "Lab Aspect Ratio" \
+  selection=$(omarchy-menu-select "$("$LAB_ROOT/bin/omarchy-lab-i18n" labCli.aspectRatio)" \
     $'󰍹\t16:9\tWidescreen' \
     $'󰍹\t16:10\tProductivity' \
     $'󰍹\t3:2\tLaptop' \

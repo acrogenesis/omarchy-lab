@@ -70,7 +70,7 @@ pick_to_guest() {
     [[ -n $file ]] || continue
     item=$(push_file "$file" --json)
     result=$(jq -cn --argjson current "$result" --argjson item "$item" '$current + [$item]')
-  done < <(omarchy-file-select --title "Send to Omarchy Lab" --multiple)
+  done < <(omarchy-file-select --title "$("$LAB_ROOT/bin/omarchy-lab-i18n" labCli.sendToLab)" --multiple)
   if $json; then
     jq -cn --argjson transfers "$result" '{transfers:$transfers}'
   else

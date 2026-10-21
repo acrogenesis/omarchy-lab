@@ -64,12 +64,13 @@ function parseBarStatus(raw) {
   }
 }
 
-function statusText(status) {
-  if (!status || !status.installed) return "Not installed"
-  if (!status.domainRunning) return "Guest " + String(status.state || "stopped")
-  if (!status.viewerActive) return "Guest running · viewer closed"
-  if (status.display) return "Guest running · " + status.display
-  return "Guest running · viewer open"
+function statusText(status, tr) {
+  var t = translator(tr)
+  if (!status || !status.installed) return t("lab.notInstalled", "Not installed")
+  if (!status.domainRunning) return message(t("lab.guestState", "Guest %1"), [status.state || t("lab.stopped", "stopped")])
+  if (!status.viewerActive) return t("lab.guestRunningViewerClosed", "Guest running · viewer closed")
+  if (status.display) return message(t("lab.guestRunningDisplay", "Guest running · %1"), [status.display])
+  return t("lab.guestRunningViewerOpen", "Guest running · viewer open")
 }
 
 function parseObject(raw) {
@@ -86,23 +87,46 @@ function parseArray(raw, key) {
   return Array.isArray(value[key]) ? value[key] : []
 }
 
-function healthText(raw) {
+function viewerPresent(toplevels, domainName) {
+  for (var i = 0; i < toplevels.length; i++) {
+    var window = toplevels[i]
+    var data = window.lastIpcObject || {}
+    var appId = data.class || (window.wayland ? window.wayland.appId : "")
+    if (appId === "virt-viewer" && String(window.title || data.title || "").indexOf(domainName) !== -1) return true
+  }
+  return false
+}
+
+function translator(tr) {
+  return typeof tr === "function" ? tr : function(key, fallback) { return fallback }
+}
+
+function message(text, values, formatNumber) {
+  return String(text).replace(/%([1-9])/g, function(_, index) {
+    var value = values[Number(index) - 1]
+    return typeof value === "number" && formatNumber ? formatNumber(value) : String(value)
+  })
+}
+
+function healthText(raw, tr, formatNumber) {
+  var t = translator(tr)
   var value = parseObject(raw)
-  if (!value.severity) return "Health unavailable"
+  if (!value.severity) return t("lab.healthUnavailable", "Health unavailable")
   var guest = value.guest || {}
   var domain = value.domain || {}
   var failed = Array.isArray(guest.failedUnits) ? guest.failedUnits.length : Number(guest.failedUnits || 0)
   var memory = guest.memory || {}
   var memoryTotal = Number(memory.totalBytes || 0)
   var memoryAvailable = Number(memory.availableBytes || 0)
-  var memoryText = memoryTotal > 0 ? Math.round((memoryTotal - memoryAvailable) / memoryTotal * 100) + "% memory" : "memory n/a"
-  return String(value.severity).toUpperCase() + " · " + String(domain.ip || "no IP") + " · " + memoryText + " · " + failed + " failed units"
+  var memoryText = memoryTotal > 0 ? message(t("lab.memoryUsage", "%1% memory"), [Math.round((memoryTotal - memoryAvailable) / memoryTotal * 100)], formatNumber) : t("lab.memoryUnavailable", "memory n/a")
+  return message(t("lab.healthSummary", "%1 · %2 · %3 · %4 failed units"), [String(value.severity).toUpperCase(), domain.ip || t("lab.noIp", "no IP"), memoryText, failed], formatNumber)
 }
 
-function networkText(raw) {
+function networkText(raw, tr) {
+  var t = translator(tr)
   var value = parseObject(raw)
-  if (!value.mode) return "Network unavailable"
-  return String(value.mode).toUpperCase() + " · " + String(value.link || "unknown") + (value.ip ? " · " + value.ip : "")
+  if (!value.mode) return t("lab.networkUnavailable", "Network unavailable")
+  return message(t("lab.networkSummary", "%1 · %2%3"), [String(value.mode).toUpperCase(), value.link || t("lab.unknown", "unknown"), value.ip ? " · " + value.ip : ""])
 }
 
 function defaultResources() {
@@ -178,33 +202,36 @@ function profileAllocation(resources, profile) {
   }
 }
 
-function resourceLimitsText(raw) {
+function resourceLimitsText(raw, tr, formatNumber) {
+  var t = translator(tr)
   var value = parseResources(raw)
-  if (!value.available) return "Host limits unavailable"
-  return "Host: " + value.host.cpus + " cores / " + memoryGiB(value.host.memoryBytes) + " GiB" +
-    " · custom limit: " + value.host.safeCpus + " cores / " + memoryGiB(value.host.safeMemoryBytes) + " GiB" +
-    " · VM ceiling: " + value.cpus.maximum + " cores / " + memoryGiB(value.memory.maximumBytes) + " GiB"
+  if (!value.available) return t("lab.hostLimitsUnavailable", "Host limits unavailable")
+  return message(t("lab.resourceLimits", "Host: %1 cores / %2 GiB · custom limit: %3 cores / %4 GiB · VM ceiling: %5 cores / %6 GiB"), [value.host.cpus, memoryGiB(value.host.memoryBytes), value.host.safeCpus, memoryGiB(value.host.safeMemoryBytes), value.cpus.maximum, memoryGiB(value.memory.maximumBytes)], formatNumber)
 }
 
-function resourceText(raw) {
+function resourceText(raw, tr, formatNumber) {
+  var t = translator(tr)
   var value = parseResources(raw)
-  if (!value.available) return "Resources unavailable"
+  if (!value.available) return t("lab.resourcesUnavailable", "Resources unavailable")
   var label = value.profile.charAt(0).toUpperCase() + value.profile.slice(1)
-  return label + " · " + value.cpus.configured + " vCPU · " + memoryGiB(value.memory.configuredBytes) + " GiB"
+  var labels = {light: t("lab.light", "Light"), balanced: t("lab.balanced", "Balanced"), performance: t("lab.performance", "Performance"), full: t("lab.full", "Full"), custom: t("lab.custom", "Custom")}
+  return message(t("lab.resourceSummary", "%1 · %2 vCPU · %3 GiB"), [labels[value.profile] || label, value.cpus.configured, memoryGiB(value.memory.configuredBytes)], formatNumber)
 }
 
-function deploymentText(raw) {
+function deploymentText(raw, tr) {
+  var t = translator(tr)
   var value = parseObject(raw)
   var host = value.host || {}
-  if (!host.commit) return "No checkout deployed"
-  return String(host.branch || "detached") + " @ " + String(host.commit).slice(0, 10) + (host.dirty ? " · dirty" : "") + (value.synchronized ? " · synchronized" : " · guest differs")
+  if (!host.commit) return t("lab.noCheckoutDeployed", "No checkout deployed")
+  return message(t("lab.deploymentSummary", "%1 @ %2%3 · %4"), [host.branch || t("lab.detached", "detached"), String(host.commit).slice(0, 10), host.dirty ? " · " + t("lab.dirty", "dirty") : "", value.synchronized ? t("lab.synchronized", "synchronized") : t("lab.guestDiffers", "guest differs")])
 }
 
-function goldText(raw) {
+function goldText(raw, tr, formatNumber) {
+  var t = translator(tr)
   var value = parseObject(raw)
-  if (!value.base) return "Gold image unavailable"
-  var version = value.currentGuestVersion || "unknown version"
-  return String(version) + " · " + Number(value.checkpointCount || 0) + " checkpoints · ISO " + String(value.newestCachedIso || "none")
+  if (!value.base) return t("lab.goldImageUnavailable", "Gold image unavailable")
+  var version = value.currentGuestVersion || t("lab.unknownVersion", "unknown version")
+  return message(t("lab.goldSummary", "%1 · %2 checkpoints · ISO %3"), [version, Number(value.checkpointCount || 0), value.newestCachedIso || t("lab.none", "none")], formatNumber)
 }
 
 function worktreeOptions(raw) {
@@ -236,10 +263,11 @@ function scenarioOptions(raw) {
   }).filter(function(item) { return item.value !== "" })
 }
 
-function artifactText(raw) {
+function artifactText(raw, tr, formatNumber) {
+  var t = translator(tr)
   var items = parseArray(raw, "artifacts")
-  if (items.length === 0) return "No captured artifacts"
-  return items.length + " artifacts · latest " + String(items[0].type || "file") + " · " + String(items[0].path || "")
+  if (items.length === 0) return t("lab.noCapturedArtifacts", "No captured artifacts")
+  return message(t("lab.artifactSummary", "%1 artifacts · latest %2 · %3"), [items.length, items[0].type || t("lab.file", "file"), items[0].path || ""], formatNumber)
 }
 
 function terminalCommand(command, args) {
@@ -258,7 +286,7 @@ function terminalCommand(command, args) {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = {
+  module.exports = { viewerPresent,
     terminalCommand: terminalCommand,
     defaultStatus: defaultStatus,
     parseStatus: parseStatus,

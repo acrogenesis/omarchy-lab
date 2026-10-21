@@ -458,7 +458,7 @@ screenshot_viewer() {
   local path
   path=$("$LAB_VM_BIN" screenshot | tail -1)
   [[ -n $path ]] || fail "the Lab screenshot did not return a file"
-  omarchy-notification-send "Lab screenshot saved" "$path"
+  omarchy-notification-send "$("$LAB_ROOT/bin/omarchy-lab-i18n" labCli.screenshotSaved)" "$path"
   printf '%s\n' "$path"
 }
 

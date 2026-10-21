@@ -10,8 +10,13 @@ export function normalize(text, file, side) {
     for (const key of ['id', 'name', 'version', 'author', 'license', 'homepage']) delete manifest[key]
     return JSON.stringify(manifest)
   }
+  if (file === 'LabTranslations.qml') {
+    if (text !== adapters[side].lab_translations) throw new Error(`${side}: review changed translation packaging adapter`)
+    return 'LAB_TRANSLATION_ADAPTER'
+  }
   if (file === 'bin/omarchy-lab-vm') {
-    for (const [name, body] of Object.entries(adapters[side])) {
+    for (const name of ['ssh_config_block', 'write_desktop']) {
+      const body = adapters[side][name]
       if (!text.includes(body)) throw new Error(`${side}: review changed packaging adapter ${name}`)
       text = text.replace(body, `${name}() { PACKAGING_ADAPTER; }`)
     }
@@ -19,8 +24,10 @@ export function normalize(text, file, side) {
   text = text.replaceAll('acrogenesis.lab', 'omarchy.lab').replaceAll('omarchy-labctl', 'omarchy lab')
   text = text.replace(/^source .*\/omarchy-lab-runtime"\n\n?/m, '')
   text = text.replace(/^source "\$\(dirname .*\/([^"]+)"$/gm, 'source "$OMARCHY_PATH/bin/$1"')
+  text = text.replaceAll('"$LAB_ROOT/bin/omarchy-lab-i18n" labCli.', 'omarchy-i18n labCli.')
   text = text.replaceAll('$LAB_ROOT', '$OMARCHY_PATH')
   if (file.endsWith('.qml')) {
+    text = text.replaceAll('labStrings.t(', 'I18n.t(')
     const helper = text.match(/  function labCommand\(name\) \{\n([^]*?)\n  }\n/)
     if (helper) {
       const body = helper[1].trim()
@@ -42,7 +49,7 @@ export function check(native, standalone) {
     }
     for (const name of fs.readdirSync(path.join(root, 'default/lab-vm'))) files.add('default/lab-vm/' + name)
   }
-  for (const name of ['Panel.qml', 'BarWidget.qml', 'Model.js', 'manifest.json', 'test/lab-parity.mjs', 'test/lab-packaging.json']) files.add(name)
+  for (const name of ['Panel.qml', 'BarWidget.qml', 'LabTranslations.qml', 'Model.js', 'manifest.json', 'test/lab-parity.mjs', 'test/lab-packaging.json']) files.add(name)
   for (const name of ['SKILL.md', 'scripts/lab']) files.add('default/agents/skills/omarchy-lab/' + name)
   let failures = 0
   for (const file of files) {
