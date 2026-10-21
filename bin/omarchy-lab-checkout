@@ -139,6 +139,35 @@ show_deployment_status() {
   fi
 }
 
+deploy_git_metadata() (
+  set -euo pipefail
+  local repository=$1 commit=$2 destination=$3 portable guest_portable=""
+  portable=$(mktemp -d)
+  cleanup_git_metadata() {
+    rm -rf -- "$portable"
+    if [[ -n $guest_portable ]]; then
+      lab_ssh "rm -rf -- $(printf '%q' "$guest_portable")" >/dev/null 2>&1 || true
+    fi
+  }
+  trap cleanup_git_metadata EXIT
+  git init --bare --quiet "$portable"
+  git -C "$portable" fetch --quiet --no-tags --depth=1 "$repository" "$commit"
+  git -C "$portable" update-ref refs/heads/omarchy-lab "$commit"
+  guest_portable=$(lab_ssh "mktemp -d $(printf '%q' "$destination.lab-git.XXXXXX")")
+  [[ -n $guest_portable ]] || { lab_fail "could not stage guest Git metadata"; return 1; }
+  push_lab "$portable" "$guest_portable" >&2
+  # Import through Git so existing guest branches, remotes and recovery refs
+  # survive. The deployment branch deliberately has no upstream: Lab sync owns
+  # source updates, while ordinary Omarchy updates can continue with packages.
+  lab_ssh "git -C $(printf '%q' "$destination") init --quiet &&
+    git -C $(printf '%q' "$destination") fetch --quiet --no-tags --depth=1 $(printf '%q' "$guest_portable") $(printf '%q' "$commit") &&
+    git -C $(printf '%q' "$destination") update-ref -m 'Omarchy Lab deployment' refs/heads/omarchy-lab $(printf '%q' "$commit") &&
+    git -C $(printf '%q' "$destination") symbolic-ref HEAD refs/heads/omarchy-lab &&
+    git -C $(printf '%q' "$destination") read-tree $(printf '%q' "$commit") &&
+    (git -C $(printf '%q' "$destination") config --unset-all branch.omarchy-lab.remote || [[ \$? == 5 ]]) &&
+    (git -C $(printf '%q' "$destination") config --unset-all branch.omarchy-lab.merge || [[ \$? == 5 ]])"
+)
+
 deploy_checkout() {
   local source="" destination="" reboot=true json=false user branch commit dirty=false deployed_at metadata encoded
   local source_kind=${OMARCHY_LAB_DEPLOY_SOURCE_KIND:-worktree} source_path repository="" source_label
@@ -195,6 +224,7 @@ deploy_checkout() {
 
   echo "Synchronizing $source_label to $NAME:$destination ..." >&2
   push_lab "$source" "$destination" >&2 || return 1
+  deploy_git_metadata "${repository:-$source}" "$commit" "$destination" >&2 || return 1
   encoded=$(printf '%s' "$metadata" | base64 -w 0) || return 1
   lab_ssh "/usr/bin/omarchy-dev-link $(printf '%q' "$destination") --no-reboot" >&2 || return 1
   lab_ssh "printf '%s' '$encoded' | base64 -d >$(printf '%q' "$destination/.omarchy-lab-deployment.json")" >&2 || return 1

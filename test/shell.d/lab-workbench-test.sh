@@ -201,6 +201,7 @@ deployment=$(
   guest_user() { echo lab; }
   push_lab() { cp "$1/deploy-marker.txt" "$test_tmp/deployed-marker.txt"; printf '%s\n' "$2" >"$test_tmp/deployed-destination.txt"; }
   lab_ssh() { :; }
+  deploy_git_metadata() { :; }
   lab_reboot() { :; }
   wait_ssh() { :; }
   wait_hypr() { :; }
@@ -225,6 +226,7 @@ sync_result=$(
   guest_user() { echo lab; }
   push_lab() { cp "$1/deploy-marker.txt" "$test_tmp/deployed-marker.txt"; printf '%s\n' "$2" >"$test_tmp/deployed-destination.txt"; }
   lab_ssh() { :; }
+  deploy_git_metadata() { :; }
   lab_reboot() { :; }
   wait_ssh() { :; }
   wait_hypr() { :; }
