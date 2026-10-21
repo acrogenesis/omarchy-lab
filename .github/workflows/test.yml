@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     container: archlinux:base-devel
     steps:
-      - run: pacman -Syu --noconfirm --needed git nodejs jq ripgrep qemu-img imagemagick openssh desktop-file-utils
+      - run: pacman -Syu --noconfirm --needed git nodejs jq ripgrep qemu-img imagemagick openssh desktop-file-utils rsync
       - uses: actions/checkout@v4
       - run: ./test/all
       - uses: actions/checkout@v4
