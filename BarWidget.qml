@@ -35,11 +35,20 @@ BarWidget {
 
   FileView {
     id: viewerSettings
-    path: Quickshell.env("OMARCHY_LAB_VIEWER_SETTINGS") || Quickshell.env("HOME") + "/.config/omarchy/lab-vm/viewer.json"
+    path: Quickshell.env("OMARCHY_LAB_VIEWER_SETTINGS") || (Quickshell.env("OMARCHY_LAB_STATE_DIR") || Quickshell.env("HOME") + "/.config/omarchy/lab-vm") + "/viewer.json"
     watchChanges: true
     blockLoading: true
     printErrors: false
     onFileChanged: reload()
+  }
+
+  function refreshSettings() {
+    viewerSettings.reload()
+  }
+
+  ShellIpc {
+    target: root.moduleName
+    function refresh(): void { root.broadcast("refreshSettings") }
   }
 
   Process {

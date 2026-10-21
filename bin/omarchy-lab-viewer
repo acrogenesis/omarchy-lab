@@ -51,12 +51,17 @@ settings_json() {
 }
 
 write_settings() {
-  local settings=$1 tmp
+  local settings=$1 tmp widget
   mkdir -p "$STATE_DIR"
   tmp=$(mktemp "$STATE_DIR/viewer.json.XXXXXX")
   printf '%s\n' "$settings" >"$tmp"
   chmod 600 "$tmp"
   mv "$tmp" "$SETTINGS_FILE"
+  # The first save may create the file after the widget's watch was installed.
+  # Notify both packaging IDs; absent or disabled widgets are a quiet no-op.
+  for widget in omarchy.lab acrogenesis.lab; do
+    omarchy-shell -q "$widget" refresh >/dev/null 2>&1 || true
+  done
 }
 
 setting() {

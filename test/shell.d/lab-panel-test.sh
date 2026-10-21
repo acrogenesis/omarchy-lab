@@ -129,6 +129,7 @@ assertEqual(Model.viewerPresent([{title: 'other-vm', lastIpcObject: {class: 'vir
 assertEqual(Model.viewerPresent([{title: 'omarchy-lab', lastIpcObject: {class: 'foot'}}], 'omarchy-lab'), false, 'a matching title in another application is not the viewer')
 assertEqual(Model.viewerPresent([], 'omarchy-lab'), false, 'closing the viewer clears the indicator')
 assertEqual(Model.viewerPresent([{title: 'omarchy-lab — console', lastIpcObject: {}, wayland: {appId: 'virt-viewer'}}], 'omarchy-lab'), true, 'the native Wayland app ID is used before the IPC snapshot is populated')
+assert(widget.includes('function refreshSettings()') && widget.includes('viewerSettings.reload()') && widget.includes('root.broadcast("refreshSettings")'), 'settings IPC reload reaches every active bar instance')
 assert(widget.includes('readonly property bool shown: viewerActive || keepInBar'), 'Lab bar widget can remain visible while the viewer is closed')
 assert(widget.includes('implicitWidth: shown ? button.implicitWidth : 0'), 'Lab bar widget takes no space unless active or pinned')
 assert(widget.includes('if (!root.viewerActive)'), 'Pinned Lab bar actions open the controls while the viewer is closed')

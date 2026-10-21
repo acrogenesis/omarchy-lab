@@ -13,6 +13,14 @@ export OMARCHY_LAB_VIEWER_SETTINGS="$OMARCHY_LAB_STATE_DIR/viewer.json"
 export OMARCHY_LAB_VM_BIN="$tmpdir/omarchy-lab-vm"
 trap 'rm -rf "$tmpdir"' EXIT
 mkdir -p "$HOME" "$tmpdir/bin"
+export VIEWER_TEST_REFRESHES="$tmpdir/refreshes"
+cat >"$tmpdir/bin/omarchy-shell" <<'STUB'
+#!/bin/bash
+printf '%s\n' "$*" >>"$VIEWER_TEST_REFRESHES"
+STUB
+chmod +x "$tmpdir/bin/omarchy-shell"
+export PATH="$tmpdir/bin:$ROOT/bin:$PATH"
+
 
 cat >"$OMARCHY_LAB_VM_BIN" <<'SH'
 #!/bin/bash
@@ -250,3 +258,8 @@ if rg -q 'not-a-pid' "$tmpdir/viewer-close"; then
   fail "viewer restart only signals numeric client pids"
 fi
 pass "viewer restart replaces managed and directly launched consoles"
+
+for target in omarchy.lab acrogenesis.lab; do
+  rg -q "^-q $target refresh$" "$VIEWER_TEST_REFRESHES" || fail "saved preferences notify $target without requiring a pre-existing settings file"
+done
+pass "settings saves notify both Lab widget distributions for their first file creation"
