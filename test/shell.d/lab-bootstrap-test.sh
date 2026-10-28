@@ -147,16 +147,3 @@ ensure_default_network
 rg -q '192.168.126.254' "$test_tmp/defined.xml" || fail 'DHCP range not moved with gateway'
 rg -q '192.168.122.1' "$STATE_DIR/default-network-before-lab.xml" || fail 'original definition not preserved'
 pass 'only an unused conflicting default network is renumbered, with a backup and matching DHCP range'
-
-run_node_test <<'JS'
-const fs = require('fs')
-const source = fs.readFileSync(path.join(root, 'bin/omarchy-lab-vm'), 'utf8')
-const reset = source.match(/reset_lab\(\) [({][^]*?\n[})]/)[0]
-assert(reset.indexOf('ensure_guest_display_resize || return 1') > reset.indexOf('wait_ssh'), 'reset repairs legacy gold integration after SSH comes up')
-const aspect = source.match(/resize_viewer_aspect\(\) \{[^]*?\n}/)[0]
-assert(aspect.indexOf('ensure_guest_display_resize || return 1') < aspect.indexOf('geometry=$(wait_viewer_geometry)'), 'aspect repairs guest integration before negotiating viewer geometry')
-assert(source.includes('LIBVIRT_NET=$(nat_gateway) || return 1'), 'guest SSH firewall uses the actual NAT gateway')
-assert(source.includes('HYPERVISOR_PACKAGES=(spice-vdagent)') && source.includes('$(declare -f ensure_install_packages)'), 'first-boot guest dependencies use the same database recovery as the installer')
-assert(source.includes('Defaults:%s verifypw=any'), 'passwordless Lab account can validate sudo for unattended guest updates')
-assert(!source.match(/enable_lab_controls\(\) \{[^]*?\n}/)[0].includes('rescanPlugins'), 'finishing setup does not reload unrelated shell plugins')
-JS

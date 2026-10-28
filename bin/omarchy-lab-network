@@ -94,7 +94,7 @@ switch_source() (
     lab_fail "start the Lab on its current network before changing network sources"
     return 1
   fi
-  local previous_live previous_config
+  local previous_live previous_config config_changed=false profile_prepared=false
   previous_live=$(run_virsh domif-getlink "$NAME" "$mac" | awk 'NR == 1 {print $NF}') || return 1
   previous_config=$(run_virsh domif-getlink "$NAME" "$mac" --config | awk 'NR == 1 {print $NF}') || return 1
   [[ $previous_live == "up" || $previous_live == "down" ]] || return 1
@@ -103,6 +103,11 @@ switch_source() (
     local status=$? failed=0
     trap - EXIT
     if (( status != 0 )); then
+      # A rejected guest-profile update must leave the original boot network.
+      # Once the profile is prepared, keep its matching network on later errors.
+      if $config_changed && ! $profile_prepared; then
+        run_virsh update-device "$NAME" /dev/stdin --config <<<"$interface_xml" >/dev/null || failed=1
+      fi
       run_virsh domif-setlink "$NAME" "$mac" "$previous_config" --config >/dev/null || failed=1
       if domain_running; then
         run_virsh domif-setlink "$NAME" "$mac" "$previous_live" >/dev/null || failed=1
@@ -121,19 +126,21 @@ switch_source() (
     sleep 1
   done
   ((attempt < 10)) || { lab_fail "guest is unavailable on its current network"; return 1; }
-  if $was_running; then
-    if [[ $network == "$ISOLATED_NETWORK" ]]; then
-      lab_ssh "sudo ufw allow from $ISOLATED_CIDR to any port 22 proto tcp comment omarchy-lab-isolated >/dev/null" || true
-    fi
-    prepare_guest_network "$network" || { lab_fail "could not prepare the guest network profile"; return 1; }
-    stop_guest || return 1
-  fi
   domain_xml=$(run_virsh dumpxml "$NAME" --inactive)
   interface_xml=$(sed -n "/<interface type='network'>/,/<\/interface>/p" <<<"$domain_xml")
   [[ -n $interface_xml ]] || lab_fail "Lab has no configurable network interface"
   replacement_xml=$(sed "s/<source network='[^']*'\/>/<source network='$network'\/>/" <<<"$interface_xml")
   [[ $replacement_xml != "$interface_xml" ]] || lab_fail "could not update the Lab network source"
   run_virsh update-device "$NAME" /dev/stdin --config <<<"$replacement_xml" >/dev/null || return 1
+  config_changed=true
+  if $was_running; then
+    if [[ $network == "$ISOLATED_NETWORK" ]]; then
+      lab_ssh "sudo ufw allow from $ISOLATED_CIDR to any port 22 proto tcp comment omarchy-lab-isolated >/dev/null" || true
+    fi
+    prepare_guest_network "$network" || { lab_fail "could not prepare the guest network profile"; return 1; }
+    profile_prepared=true
+    stop_guest || return 1
+  fi
   if $was_running; then
     rm -f "$KNOWN_HOSTS"
     lab_with_operation_lock run_virsh start "$NAME" >/dev/null || return 1

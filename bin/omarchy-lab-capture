@@ -193,7 +193,7 @@ capture_bundle() {
     hyprctl clients -j >"$bundle/hyprland-clients.json" 2>&1 || true
     hyprctl configerrors >"$bundle/hyprland-errors.txt" 2>&1 || true
     omarchy version >"$bundle/omarchy-version.txt" 2>&1 || true
-    printf "%s\n" "${OMARCHY_PATH:-/usr/share/omarchy}" >"$bundle/omarchy-path.txt"
+    printf "%s\n" "$OMARCHY_PATH" >"$bundle/omarchy-path.txt"
     ip addr >"$bundle/ip-addresses.txt" 2>&1 || true
     lsblk -J -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS >"$bundle/block-devices.json" 2>&1 || true
     tar -C "$bundle" -czf - .

@@ -102,7 +102,7 @@ show_resource_status() {
   fi
 }
 
-set_resource_profile() {
+apply_resource_profile() {
   local profile=${1:-} requested_cpus=0 requested_gib=0 no_reboot=false json=false custom=false current maximum_cpus maximum_gib running=false
   local safe_cpus safe_gib balanced_cpus balanced_gib performance_cpus performance_gib full_cpus full_gib
   [[ -n $profile ]] || lab_fail "usage: omarchy-labctl resource set PROFILE [CPUS MEMORY_GIB] [--no-reboot] [--json]"
@@ -199,6 +199,11 @@ set_resource_profile() {
     printf 'Lab resources: %s (%s vCPU, %s GiB)%s\n' "$profile" "$requested_cpus" "$requested_gib" "$($running && $no_reboot && printf ' — reboot required')"
   fi
 }
+
+set_resource_profile() {
+  lab_with_operation_lock apply_resource_profile "$@"
+}
+
 
 show_usage() {
   cat <<'EOF'

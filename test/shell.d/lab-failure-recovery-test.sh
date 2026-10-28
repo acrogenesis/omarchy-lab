@@ -79,30 +79,39 @@ pass "fresh gold status works before any checkpoint directory exists"
 )
 pass "rebuild removal preserves the SSH key and retires stale host keys"
 
-for fault in ssh preparation; do
+for fault in ssh preparation update; do
   (
     source "$ROOT/bin/omarchy-lab-network"
     printf 'down\n' >"$task_tmp/live-link"
     printf 'down\n' >"$task_tmp/config-link"
+    printf 'default\n' >"$task_tmp/source"
+    rm -f "$task_tmp/profile-prepared"
     lab_mac() { echo 52:54:00:00:00:01; }
     domain_running() { return 0; }
     sleep() { :; }
     lab_ssh() { [[ $fault != "ssh" ]]; }
-    prepare_guest_network() { return 9; }
+    prepare_guest_network() { touch "$task_tmp/profile-prepared"; [[ $fault != "preparation" ]]; }
+    stop_guest() { fail "a failed network preparation stops the running guest"; }
     run_virsh() {
       case $1 in
       domif-getlink)
         if [[ ${4:-} == "--config" ]]; then cat "$task_tmp/config-link"; else cat "$task_tmp/live-link"; fi ;;
       domif-setlink)
         if [[ ${5:-} == "--config" ]]; then printf '%s\n' "$4" >"$task_tmp/config-link"; else printf '%s\n' "$4" >"$task_tmp/live-link"; fi ;;
+      dumpxml) printf "<interface type='network'>\n<source network='%s'/>\n</interface>\n" "$(<"$task_tmp/source")" ;;
+      update-device)
+        [[ $fault != "update" ]] || return 9
+        sed -n "s/.*<source network='\([^']*\)'.*/\1/p" >"$task_tmp/source" ;;
       *) fail "failure cleanup unexpectedly changed network source: $*" ;;
       esac
     }
     if switch_source omarchy-lab-isolated >/dev/null 2>&1; then fail "failed network change was reported as success"; fi
     [[ $(<"$task_tmp/live-link") == "down" && $(<"$task_tmp/config-link") == "down" ]] || fail "failed isolation left NAT connected"
+    [[ $(<"$task_tmp/source") == "default" ]] || fail "failed preparation keeps a mismatched boot network"
+    if [[ $fault == "update" && -e $task_tmp/profile-prepared ]]; then fail "rejected libvirt update changed the guest profile"; fi
   )
 done
-pass "SSH timeout and guest-preparation failure restore both offline link states"
+pass "failed network switches preserve the boot network, guest profile and both offline link states"
 
 (
   source "$ROOT/bin/omarchy-lab-checkpoint"
@@ -169,11 +178,16 @@ try:
         time.sleep(.03)
     assert entered.exists(), 'disk operation never acquired lock'
     launch = subprocess.Popen(['bash','-c','source "$HELPER"; lab_with_operation_lock touch "$STARTED"'],env=env,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
+    resource_read = p / 'resource-read'
+    env['RESOURCE_READ'] = str(resource_read)
+    resource = subprocess.Popen(['bash','-c','source "$OMARCHY_PATH/bin/omarchy-lab-resource"; require_lab(){ :; }; resource_status_json(){ touch "$RESOURCE_READ"; return 17; }; set_resource_profile full'],env=env,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
     time.sleep(.2)
+    assert not resource_read.exists(), 'resource configuration was read outside the shared operation lock'
     assert not started.exists(), 'launch ran while the disk operation held the lock'
     release.touch()
     assert holder.wait(timeout=5) == 0
     assert launch.wait(timeout=5) == 0 and started.exists()
+    assert resource.wait(timeout=5) != 0 and resource_read.exists()
 finally:
     release.touch()
     holder.wait(timeout=5)
@@ -256,3 +270,48 @@ pass "the workbench session interface executes arguments and intentional shell s
   rg -q 'install first' "$task_tmp/missing-error" || fail "missing Lab session did not explain how to install"
 )
 pass "an uninstalled Lab rejects command strings before any startup or wait"
+
+(
+  source "$ROOT/bin/omarchy-lab-gold"
+  IMAGES="$task_tmp/offline-gold"
+  mkdir -p "$IMAGES"
+  printf 'old gold\n' >"$IMAGES/$BASE_VOL"
+  printf 'current disk\n' >"$IMAGES/$OVERLAY_VOL"
+  mkdir -p "$(dirname "$CONFIG_FILE")"
+  printf 'DISK=1G\n' >"$CONFIG_FILE"
+  touch "$task_tmp/gold-running"
+  is_tty() { return 0; }
+  confirm_destructive() { return 0; }
+  sudo() { return 0; }
+  require_lab() { :; }
+  find_pool() { echo fixture; }
+  preserve_checkpoints() { :; }
+  domain_running() { [[ -e $task_tmp/gold-running ]]; }
+  stop_guest() { rm -f "$task_tmp/gold-running"; }
+  lab_mac() { echo 52:54:00:00:00:01; }
+  lab_ssh() { touch "$task_tmp/offline-ssh"; return 1; }
+  wait_ssh() { touch "$task_tmp/offline-ssh"; return 1; }
+  wait_hypr() { touch "$task_tmp/offline-ssh"; return 1; }
+  gold_status_json() { echo '{}'; }
+  run_as_root() {
+    case $1 in
+    qemu-img) cp "$IMAGES/$OVERLAY_VOL" "$IMAGES/${BASE_VOL%.qcow2}.next.qcow2" ;;
+    chown) : ;;
+    *) "$@" ;;
+    esac
+  }
+  run_virsh() {
+    case $1 in
+    dumpxml) printf "<interface type='network'>\n<source network='default'/>\n</interface>\n" ;;
+    domif-getlink) echo down ;;
+    start) touch "$task_tmp/gold-running" ;;
+    pool-refresh | vol-delete | vol-create-as) : ;;
+    *) fail "unexpected offline promotion command: $*" ;;
+    esac
+  }
+  promote_gold --yes --json >"$task_tmp/offline-gold-result"
+  [[ ! -e $task_tmp/offline-ssh && -e $task_tmp/gold-running ]] || fail "offline promotion attempts SSH or fails to restart"
+  [[ $(<"$IMAGES/$BASE_VOL") == "current disk" ]] || fail "offline promotion does not publish the current disk"
+  jq -e '.promoted == true' "$task_tmp/offline-gold-result" >/dev/null || fail "offline promotion does not report completion"
+)
+pass "offline gold promotion restarts the guest without waiting for SSH"

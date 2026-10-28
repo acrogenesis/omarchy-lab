@@ -70,7 +70,7 @@ show_gold_status() {
 
 promote_gold() (
   lab_operation_lock || return 1
-  local yes=0 json=false was_running=false pool base overlay next previous metadata version="" network
+  local yes=0 json=false was_running=false pool base overlay next previous metadata version="" network mac link
   if ! is_tty; then
     launch_lifecycle_terminal "$LAB_ROOT/bin/omarchy-lab-gold" promote "$@"
     return
@@ -93,10 +93,13 @@ promote_gold() (
   previous="$IMAGES/${BASE_VOL%.qcow2}.previous.qcow2"
   network=$(run_virsh dumpxml "$NAME" --inactive | sed -n "/<interface type='network'>/,/<\/interface>/s/.*<source network='\([^']*\)'.*/\1/p")
   [[ -n $network ]] || { lab_fail "could not determine the gold network"; return 1; }
+  mac=$(lab_mac) || return 1
+  link=$(run_virsh domif-getlink "$NAME" "$mac" --config | awk 'NR == 1 {print $NF}') || return 1
+  [[ $link == "up" || $link == "down" ]] || return 1
   preserve_checkpoints || return 1
   if domain_running; then
     was_running=true
-    version=$(lab_ssh 'omarchy version 2>/dev/null | head -1' || true)
+    if [[ $link == "up" ]]; then version=$(lab_ssh 'omarchy version 2>/dev/null | head -1' || true); fi
     stop_guest
   fi
 
@@ -119,8 +122,10 @@ promote_gold() (
   rm -f "$KNOWN_HOSTS"
   if $was_running; then
     lab_with_operation_lock run_virsh start "$NAME" >/dev/null
-    wait_ssh >&2
-    wait_hypr >&2 || true
+    if [[ $link == "up" ]]; then
+      wait_ssh >&2
+      wait_hypr >&2 || true
+    fi
   fi
   if $json; then gold_status_json | jq '. + {promoted:true}'; else printf 'Promoted the current Lab to gold. Previous gold: %s\n' "$previous"; fi
 )

@@ -529,7 +529,7 @@ Item {
         MouseArea { anchors.fill: parent; onClicked: {} }
 
         Behavior on height {
-          NumberAnimation { duration: 140; easing.type: Easing.OutCubic }
+          NumberAnimation { duration: Style.duration(140); easing.type: Easing.Bezier; easing.bezierCurve: Style.easeOut }
         }
         onHeightChanged: Qt.callLater(function() { root.constrainCard() })
 

@@ -232,7 +232,7 @@ for source_network in default omarchy-lab-isolated; do
       domif-setlink) link=$4 ;;
       dumpxml) printf "<interface type='network'>\n<source network='%s'/>\n</interface>\n" "$source_network" ;;
       update-device)
-        [[ -f $test_tmp/network-prepared-$target ]] || fail "source switched without preparation"
+        [[ ! -f $test_tmp/network-prepared-$target ]] || fail "boot network is only validated after changing the guest profile"
         cat >"$test_tmp/network-interface-$target"
         ;;
       start) running=true ;;
@@ -250,11 +250,11 @@ pass "offline source transitions reconnect first and stopped transitions are rej
 
 (
   source "$ROOT/bin/omarchy-lab-capture"
-  LAB_ROOT="$test_tmp/capture-root"
+  OMARCHY_PATH="$test_tmp/capture-root"
   ARTIFACT_DIR="$test_tmp/capture-artifacts"
-  mkdir -p "$LAB_ROOT/bin"
-  printf '#!/bin/bash\nexit 0\n' >"$LAB_ROOT/bin/omarchy-lab-viewer"
-  chmod +x "$LAB_ROOT/bin/omarchy-lab-viewer"
+  mkdir -p "$OMARCHY_PATH/bin"
+  printf '#!/bin/bash\nexit 0\n' >"$OMARCHY_PATH/bin/omarchy-lab-viewer"
+  chmod +x "$OMARCHY_PATH/bin/omarchy-lab-viewer"
   require_running_lab() { :; }
   omarchy-shell() { :; }
   hyprctl() { printf '{"class":"virt-viewer","title":"omarchy-lab"}\n'; }
@@ -273,10 +273,14 @@ pass "offline source transitions reconnect first and stopped transitions are rej
 pass "oversized viewer capture is bounded and recorder startup failures clean up"
 
 run_node_test <<'JS'
-const fs = require('fs')
+const fs = require('fs'), vm = require('vm')
 const panel = fs.readFileSync(path.join(root, 'Panel.qml'), 'utf8')
-const record = panel.match(/function recordViewer\(\) \{([\s\S]*?)\n  \}/)[1]
-assert(record.indexOf('close()') < record.indexOf('runCommand('), 'recording closes the panel before launching capture')
-const capture = fs.readFileSync(path.join(root, 'bin/omarchy-lab-capture'), 'utf8')
-assert(capture.indexOf('omarchy-shell shell hide acrogenesis.lab') < capture.indexOf('gpu-screen-recorder -w'), 'CLI recording hides the panel before capture too')
+const code = panel.match(/function recordViewer\(\) \{[^]*?\n  }/)[0]
+for (const busy of [false, true]) {
+  const calls = []
+  const state = vm.createContext({busy, actionProc:{running:false}, close(){calls.push('close')}, runCommand(){calls.push('record')}})
+  vm.runInContext(code, state)
+  state.recordViewer()
+  assertDeepEqual(calls, busy ? [] : ['close', 'record'], 'recording closes the panel before capture and respects busy state')
+}
 JS

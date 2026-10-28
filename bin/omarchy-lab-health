@@ -31,7 +31,7 @@ guest_health_json() {
       --arg failed "$failed" \
       --arg errors "$errors" \
       --arg version "$version" \
-      --arg source "${OMARCHY_PATH:-/usr/share/omarchy}" \
+      --arg source "$OMARCHY_PATH" \
       --arg bootId "$(cat /proc/sys/kernel/random/boot_id)" \
       --argjson rootTotal "${root_total:-0}" \
       --argjson rootUsed "${root_used:-0}" \

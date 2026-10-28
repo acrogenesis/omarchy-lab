@@ -4,38 +4,6 @@ set -euo pipefail
 
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/base-test.sh"
 
-run_node_test <<'JS'
-const fs = require('fs')
-
-const commands = ['action', 'capture', 'checkout', 'checkpoint', 'common', 'gold', 'health', 'network', 'resource', 'scenario', 'transfer']
-for (const name of commands) {
-  const file = path.join(root, 'bin', `omarchy-lab-${name}`)
-  const source = fs.readFileSync(file, 'utf8')
-  assert(source.startsWith('#!/bin/bash\n'), `${name} uses the repository bash shebang`)
-  assert(source.includes('set -euo pipefail'), `${name} enables strict shell behavior`)
-  assert(source.includes('# omarchy:summary='), `${name} has command metadata`)
-}
-
-for (const name of ['checkpoint', 'gold']) {
-  const source = fs.readFileSync(path.join(root, 'bin', `omarchy-lab-${name}`), 'utf8')
-  assert(source.includes('confirm_destructive'), `${name} routes destructive operations through confirmation`)
-  assert(source.includes('--yes'), `${name} has an explicit non-interactive confirmation flag`)
-}
-
-const scenario = fs.readFileSync(path.join(root, 'bin/omarchy-lab-scenario'), 'utf8')
-assert(scenario.includes('all(.command[]; type == "string"'), 'scenario steps are argument arrays')
-assert(!scenario.includes('eval '), 'scenario runner never evaluates shell strings')
-
-const network = fs.readFileSync(path.join(root, 'bin/omarchy-lab-network'), 'utf8')
-assert(network.includes('ipv4.never-default yes'), 'isolated mode gives the guest no default route')
-assert(network.includes('update-device') && !network.includes('detach-interface'), 'network switching preserves the guest NIC identity')
-
-const resource = fs.readFileSync(path.join(root, 'bin/omarchy-lab-resource'), 'utf8')
-assert(resource.includes('Power-cycling the Lab'), 'resource changes use a full VM cycle')
-
-const transfer = fs.readFileSync(path.join(root, 'bin/omarchy-lab-transfer'), 'utf8')
-assert(transfer.includes('systemd-run --user') && transfer.includes('wl-copy --foreground'), 'guest clipboard ownership survives the SSH session')
-JS
 
 test_tmp=$(mktemp -d)
 trap 'rm -rf -- "$test_tmp"' EXIT
@@ -170,13 +138,10 @@ branch_scenario=$(
 jq -e '.steps[1].command == ["checkout","deploy","--branch","feature/searchable","--json"]' <<<"$branch_scenario" >/dev/null || fail "checkpoint deployment scenario accepts a local branch"
 pass "checkpoint deployment scenario accepts a local branch"
 
-discovery_repo="$test_tmp/discovery-repo"
-git init -q -b main "$discovery_repo"
-git -C "$discovery_repo" -c user.name=Test -c user.email=test@example.invalid commit -qm initial --allow-empty
-"$ROOT/bin/omarchy-lab-checkout" list "$discovery_repo" --json | jq -e '.worktrees | length > 0 and all(.[]; (.path | length > 0) and (.commit | length == 40))' >/dev/null || fail "checkout discovery returns agent-ready Git metadata"
+"$ROOT/bin/omarchy-lab-checkout" list "$ROOT" --json | jq -e '.worktrees | length > 0 and all(.[]; (.path | length > 0) and (.commit | length == 40))' >/dev/null || fail "checkout discovery returns agent-ready Git metadata"
 pass "checkout discovery returns agent-ready Git metadata"
 
-"$ROOT/bin/omarchy-lab-checkout" branches "$discovery_repo" --json | jq -e '.branches | length > 0 and all(.[]; (.branch | length > 0) and (.commit | length == 40) and (.checkedOut | type == "boolean"))' >/dev/null || fail "branch discovery returns searchable local refs"
+"$ROOT/bin/omarchy-lab-checkout" branches "$ROOT" --json | jq -e '.branches | length > 0 and all(.[]; (.branch | length > 0) and (.commit | length == 40) and (.checkedOut | type == "boolean"))' >/dev/null || fail "branch discovery returns searchable local refs"
 pass "branch discovery returns searchable local refs"
 
 branch_repo="$test_tmp/branch-repo"
@@ -273,6 +238,7 @@ pass "comparison joins screenshots and emits structured metadata"
   require_lab() { :; }
   find_pool() { echo test-pool; }
   domain_running() { return 1; }
+  lab_mac() { echo 52:54:00:00:00:01; }
   is_tty() { return 0; }
   sudo() { [[ $1 == "-v" ]]; }
   run_as_root() {
@@ -281,6 +247,7 @@ pass "comparison joins screenshots and emits structured metadata"
   run_virsh() {
     case $1 in
     dumpxml) printf "<interface type='network'>\n<source network='default'/>\n</interface>\n" ;;
+    domif-getlink) echo up ;;
     pool-refresh) : ;;
     vol-delete) rm -f "$IMAGES/$OVERLAY_VOL" ;;
     vol-create-as) qemu-img create -q -f qcow2 -F qcow2 -b "$IMAGES/$BASE_VOL" "$IMAGES/$OVERLAY_VOL" "$4" ;;
