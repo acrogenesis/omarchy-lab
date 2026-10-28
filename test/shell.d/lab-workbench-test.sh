@@ -138,10 +138,14 @@ branch_scenario=$(
 jq -e '.steps[1].command == ["checkout","deploy","--branch","feature/searchable","--json"]' <<<"$branch_scenario" >/dev/null || fail "checkpoint deployment scenario accepts a local branch"
 pass "checkpoint deployment scenario accepts a local branch"
 
-"$ROOT/bin/omarchy-lab-checkout" list "$ROOT" --json | jq -e '.worktrees | length > 0 and all(.[]; (.path | length > 0) and (.commit | length == 40))' >/dev/null || fail "checkout discovery returns agent-ready Git metadata"
+# Own the discovery fixture even when CI mounts its checkout from another UID.
+discovery_repo="$test_tmp/discovery-repo"
+git init -q -b main "$discovery_repo"
+git -C "$discovery_repo" -c user.name=Test -c user.email=test@example.invalid commit -qm initial --allow-empty
+"$ROOT/bin/omarchy-lab-checkout" list "$discovery_repo" --json | jq -e '.worktrees | length > 0 and all(.[]; (.path | length > 0) and (.commit | length == 40))' >/dev/null || fail "checkout discovery returns agent-ready Git metadata"
 pass "checkout discovery returns agent-ready Git metadata"
 
-"$ROOT/bin/omarchy-lab-checkout" branches "$ROOT" --json | jq -e '.branches | length > 0 and all(.[]; (.branch | length > 0) and (.commit | length == 40) and (.checkedOut | type == "boolean"))' >/dev/null || fail "branch discovery returns searchable local refs"
+"$ROOT/bin/omarchy-lab-checkout" branches "$discovery_repo" --json | jq -e '.branches | length > 0 and all(.[]; (.branch | length > 0) and (.commit | length == 40) and (.checkedOut | type == "boolean"))' >/dev/null || fail "branch discovery returns searchable local refs"
 pass "branch discovery returns searchable local refs"
 
 branch_repo="$test_tmp/branch-repo"
