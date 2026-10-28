@@ -250,11 +250,12 @@ pass "offline source transitions reconnect first and stopped transitions are rej
 
 (
   source "$ROOT/bin/omarchy-lab-capture"
-  OMARCHY_PATH="$test_tmp/capture-root"
+  LAB_ROOT="$test_tmp/capture-root"
   ARTIFACT_DIR="$test_tmp/capture-artifacts"
-  mkdir -p "$OMARCHY_PATH/bin"
-  printf '#!/bin/bash\nexit 0\n' >"$OMARCHY_PATH/bin/omarchy-lab-viewer"
-  chmod +x "$OMARCHY_PATH/bin/omarchy-lab-viewer"
+  mkdir -p "$LAB_ROOT/bin"
+  printf '#!/bin/bash\n: >"$VIEWER_FIXTURE_MARKER"\nexit 0\n' >"$LAB_ROOT/bin/omarchy-lab-viewer"
+  chmod +x "$LAB_ROOT/bin/omarchy-lab-viewer"
+  export VIEWER_FIXTURE_MARKER="$test_tmp/capture-viewer-called"
   require_running_lab() { :; }
   omarchy-shell() { :; }
   hyprctl() { printf '{"class":"virt-viewer","title":"omarchy-lab"}\n'; }
@@ -267,6 +268,7 @@ pass "offline source transitions reconnect first and stopped transitions are rej
   if capture_recording 1 --json >"$test_tmp/failed-recording.json" 2>"$test_tmp/failed-recording.log"; then
     fail "recorder startup failure returned success"
   fi
+  [[ -f $VIEWER_FIXTURE_MARKER ]] || fail "capture used a controller outside its fixture"
   [[ -z $(trap -p EXIT) ]] || fail "failed recorder left a trap referencing dead local state"
   [[ ! -s $test_tmp/failed-recording.json ]] || fail "failed recording returned success JSON"
 )
